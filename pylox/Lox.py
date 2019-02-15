@@ -47,6 +47,8 @@ class Lox:
         for token in tokens:
             print(token)
 
+        return tokens
+
     @classmethod
     def error(cls, line_number, message):
         cls.report(line_number, "", message)

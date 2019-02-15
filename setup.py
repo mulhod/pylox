@@ -12,5 +12,5 @@ setup(name='pylox',
       packages=["pylox", "pylox"],
       package_dir={"pylox": "pylox"},
       include_package_data=True,
-      #entry_points={'console_scripts': ['htmlify = src.htmlify:main']},
+      entry_points={'console_scripts': ['plox = pylox.pylox_interpreter:main']},
       zip_safe=False)

@@ -8,4 +8,15 @@ class Token:
         self.line_number = line_number
 
     def __str__(self):
-        return "{} '{}' {}".format(self.token_type, self.lexeme, self.literal)
+        return "{} '{}' {}, line {}".format(self.token_type,
+                                            self.lexeme,
+                                            self.literal,
+                                            self.line_number)
+
+    def __eq__(self, other):
+        if all([self.token_type == other.token_type,
+                self.lexeme == other.lexeme,
+                self.literal == other.literal,
+                self.line_number == other.line_number]):
+            return True
+        return False
