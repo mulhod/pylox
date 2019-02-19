@@ -102,7 +102,7 @@ class Scanner:
             elif self.is_alpha(c):
                 self.identifier()
             else:
-                Lox.error(self.line_number, "Unexpected character.")
+                Lox.Lox.error(self.line_number, "Unexpected character.")
 
     def identifier(self):
         while self.is_alphanumeric(self.peek()):
@@ -139,7 +139,7 @@ class Scanner:
 
         # Unterminated string.
         if self.is_at_end():
-            Lox.error(self.line_number, "Unterminated string.")
+            Lox.Lox.error(self.line_number, "Unterminated string.")
             return
 
         # The closing ".

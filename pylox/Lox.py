@@ -32,10 +32,17 @@ class Lox:
             sys.exit(65)
 
     @classmethod
-    def run_prompt(cls):
+    def run_prompt(cls, keyboard_interrupt=False):
         while True:
             print("> ", end="")
-            cls.run_from_string(input())
+            try:
+                if not keyboard_interrupt:
+                    cls.run_from_string(input())
+                else:
+                    raise KeyboardInterrupt()
+            except KeyboardInterrupt:
+                print()
+                break
             cls.had_error = False
 
     @staticmethod
