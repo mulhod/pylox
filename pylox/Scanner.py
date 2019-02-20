@@ -40,61 +40,91 @@ class Scanner:
 
     def scan_token(self):
         c = self.advance()
-        if c == '(':
+        if c == "(":
             self.add_token(TokenType.LEFT_PAREN)
-        elif c == ')':
+        elif c == ")":
             self.add_token(TokenType.RIGHT_PAREN)
-        elif c == '{':
+        elif c == "{":
             self.add_token(TokenType.LEFT_BRACE)
-        elif c == '}':
+        elif c == "}":
             self.add_token(TokenType.RIGHT_BRACE)
-        elif c == ',':
+        elif c == ",":
             self.add_token(TokenType.COMMA)
-        elif c == '.':
+        elif c == ".":
             self.add_token(TokenType.DOT)
-        elif c == '-':
+        elif c == "-":
             self.add_token(TokenType.MINUS)
-        elif c == '+':
+        elif c == "+":
             self.add_token(TokenType.PLUS)
-        elif c == ';':
+        elif c == ";":
             self.add_token(TokenType.SEMICOLON)
-        elif c == '*':
+        elif c == "*":
             self.add_token(TokenType.STAR)
-        elif c == '!':
-            if self.match('='):
+        elif c == "!":
+            if self.match("="):
                 self.add_token(TokenType.BANG_EQUAL)
             else:
                 self.add_token(TokenType.BANG)
-        elif c == '=':
-            if self.match('='):
+        elif c == "=":
+            if self.match("="):
                 self.add_token(TokenType.EQUAL_EQUAL)
             else:
                 self.add_token(TokenType.EQUAL)
-        elif c == '<':
-            if self.match('='):
+        elif c == "<":
+            if self.match("="):
                 self.add_token(TokenType.LESS_EQUAL)
             else:
                 self.add_token(TokenType.LESS)
-        elif c == '>':
-            if self.match('='):
+        elif c == ">":
+            if self.match("="):
                 self.add_token(TokenType.GREATER_EQUAL)
             else:
                 self.add_token(TokenType.GREATER)
-        elif c == '/':
-            if self.match('/'):
-                while self.peek() != '\n' and not self.is_at_end():
+        elif c == "/":
+            if self.match("/"):
+                while self.peek() != "\n" and not self.is_at_end():
                     self.advance()
+            elif self.match("*"):
+                found_end_block_comment = False
+                while not found_end_block_comment:
+                    if self.match("\n"):
+                        self.line_number += 1
+                    elif self.match("*"):
+                        if self.match("/"):
+                            found_end_block_comment = True
+                    elif self.is_at_end():
+                        break
+                    else:
+                        self.advance()
+                if not found_end_block_comment:
+                    Lox.Lox.error(self.line_number,
+                                  "Unterminated block comment.")
+                if self.is_at_end():
+                    return
+                found_newline = False
+                while not found_newline:
+                    if self.match("\n"):
+                        found_newline = True
+                        self.line_number += 1
+                    elif self.match(" ") or self.match("\t"):
+                        continue
+                    elif self.is_at_end():
+                        break
+                    else:
+                        Lox.Lox.error(self.line_number,
+                                      "Unterminated block comment.")
+                        self.advance()
             else:
                 self.add_token(TokenType.SLASH)
-        elif c == ' ':
+        elif c == " ":
             pass
-        elif c == '\r':
+        elif c == "\r":
             pass
-        elif c == '\t':
+        elif c == "\t":
             pass
-        elif c == '\n':
+        elif c == "\n":
             self.line_number += 1
-        elif c == '"':
+        elif c == "\"":
             self.string()
         else:
             if self.is_digit(c):
@@ -121,7 +151,7 @@ class Scanner:
             self.advance()
 
         # Look for a fractional part.
-        if self.peek() == '.' and self.is_digit(self.peek_next()):
+        if self.peek() == "." and self.is_digit(self.peek_next()):
             # Consume the "."
             self.advance()
 
@@ -132,8 +162,8 @@ class Scanner:
                                     float(self.source[self.start:self.current]))
 
     def string(self):
-        while self.peek() != '"' and not self.is_at_end():
-            if self.peek() == '\n':
+        while self.peek() != "\"" and not self.is_at_end():
+            if self.peek() == "\n":
                 self.line_number += 1
             self.advance()
 
@@ -142,7 +172,7 @@ class Scanner:
             Lox.Lox.error(self.line_number, "Unterminated string.")
             return
 
-        # The closing ".
+        # The closing "."
         self.advance()
 
         # Trim the surrounding quotes.
@@ -160,24 +190,24 @@ class Scanner:
 
     def peek(self):
         if self.is_at_end():
-            return '\0'
+            return "\0"
         return self.source[self.current]
 
     def peek_next(self):
         if self.current + 1 >= len(self.source):
-            return '\0'
+            return "\0"
         return self.source[self.current]
 
     @staticmethod
     def is_alpha(c):
-        return (c >= 'a' and c <= 'z') or (c >= 'A' and c <= 'Z') or c == '_'
+        return (c >= "a" and c <= "z") or (c >= "A" and c <= "Z") or c == "_"
 
     def is_alphanumeric(self, c):
         return self.is_alpha(c) or self.is_digit(c)
 
     @staticmethod
     def is_digit(c):
-        return c >= '0' and c <= '9'
+        return c >= "0" and c <= "9"
 
     def is_at_end(self):
         return self.current >= len(self.source)

@@ -72,8 +72,52 @@ class TestLox(TestCase):
         Lox.run_file(source_file_path)
         self.assertFalse(Lox.had_error)
 
+    def testSourceFileWithBlockComments(self):
+        self.reset()
+        source_file_path = join(test_data_dir_path, "block_comment.lox")
+        Lox.run_file(source_file_path)
+        self.assertFalse(Lox.had_error)
+
     def testNonexistentSourceFile(self):
         self.reset()
         source_file_path = join(test_data_dir_path, "non_existent_file")
         self.assertRaises(FileNotFoundError, Lox.run_file, source_file_path)
         self.assertFalse(Lox.had_error)
+
+    def testBlockComment1(self):
+        self.reset()
+        Lox.run_from_string("/*\n *hello\n */")
+        self.assertFalse(Lox.had_error)
+
+    def testBlockComment2(self):
+        self.reset()
+        Lox.run_from_string("/*\n *hello\n */\n")
+        self.assertFalse(Lox.had_error)
+
+    def testBlockComment3(self):
+        self.reset()
+        Lox.run_from_string("/*\n *hello\n */   \t   \n\n")
+        self.assertFalse(Lox.had_error)
+
+    def testBlockComment4(self):
+        self.reset()
+        Lox.run_from_string("/*\n *hello\n */\nvar i = 4;")
+        self.assertFalse(Lox.had_error)
+
+    def testBlockComment5(self):
+        self.reset()
+        Lox.run_from_string("\nvar i = 4;\n/*\n *hello\n */")
+        self.assertFalse(Lox.had_error)
+
+    def testInvalidBlockComment(self):
+        self.reset()
+        stdout = StringIO()
+        try:
+            with redirect_stdout(stdout):
+                Lox.run_from_string("/*\n *hello\n *")
+                self.assertTrue(Lox.had_error)
+                expected_error_msg = "[line 3] Error : Unterminated block comment."
+                actual_error_msg = stdout.getvalue().splitlines()[0]
+                self.assertEqual(expected_error_msg, actual_error_msg)
+        finally:
+            stdout.close()
