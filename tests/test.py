@@ -1,4 +1,3 @@
-import sys
 from io import StringIO
 from contextlib import redirect_stdout
 from os.path import dirname, realpath, join
@@ -14,10 +13,10 @@ test_data_dir_path = join(dirname(realpath(__file__)), "test_data")
 
 class TestLox(TestCase):
 
-    def reset(self):
+    def reset(self: "TestLox") -> None:
         Lox.had_error = False
 
-    def testSimpleSourceString(self):
+    def testSimpleSourceString(self: "TestLox") -> None:
         self.reset()
         stdout = StringIO()
         try:
@@ -48,12 +47,12 @@ class TestLox(TestCase):
         finally:
             stdout.close()
 
-    def testKeyboardInterrupt(self):
+    def testKeyboardInterrupt(self: "TestLox") -> None:
         self.reset()
         Lox.run_prompt(keyboard_interrupt=True)
         self.assertFalse(Lox.had_error)
 
-    def testInvalidSourceString(self):
+    def testInvalidSourceString(self: "TestLox") -> None:
         self.reset()
         stdout = StringIO()
         try:
@@ -66,50 +65,50 @@ class TestLox(TestCase):
         finally:
             stdout.close()
 
-    def testSourceFile(self):
+    def testSourceFile(self: "TestLox") -> None:
         self.reset()
         source_file_path = join(test_data_dir_path, "dll.lox")
         Lox.run_file(source_file_path)
         self.assertFalse(Lox.had_error)
 
-    def testSourceFileWithBlockComments(self):
+    def testSourceFileWithBlockComments(self: "TestLox") -> None:
         self.reset()
         source_file_path = join(test_data_dir_path, "block_comment.lox")
         Lox.run_file(source_file_path)
         self.assertFalse(Lox.had_error)
 
-    def testNonexistentSourceFile(self):
+    def testNonexistentSourceFile(self: "TestLox") -> None:
         self.reset()
         source_file_path = join(test_data_dir_path, "non_existent_file")
         self.assertRaises(FileNotFoundError, Lox.run_file, source_file_path)
         self.assertFalse(Lox.had_error)
 
-    def testBlockComment1(self):
+    def testBlockComment1(self: "TestLox") -> None:
         self.reset()
         Lox.run_from_string("/*\n *hello\n */")
         self.assertFalse(Lox.had_error)
 
-    def testBlockComment2(self):
+    def testBlockComment2(self: "TestLox") -> None:
         self.reset()
         Lox.run_from_string("/*\n *hello\n */\n")
         self.assertFalse(Lox.had_error)
 
-    def testBlockComment3(self):
+    def testBlockComment3(self: "TestLox") -> None:
         self.reset()
         Lox.run_from_string("/*\n *hello\n */   \t   \n\n")
         self.assertFalse(Lox.had_error)
 
-    def testBlockComment4(self):
+    def testBlockComment4(self: "TestLox") -> None:
         self.reset()
         Lox.run_from_string("/*\n *hello\n */\nvar i = 4;")
         self.assertFalse(Lox.had_error)
 
-    def testBlockComment5(self):
+    def testBlockComment5(self: "TestLox") -> None:
         self.reset()
         Lox.run_from_string("\nvar i = 4;\n/*\n *hello\n */")
         self.assertFalse(Lox.had_error)
 
-    def testInvalidBlockComment(self):
+    def testInvalidBlockComment(self: "TestLox") -> None:
         self.reset()
         stdout = StringIO()
         try:

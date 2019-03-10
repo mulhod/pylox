@@ -1,6 +1,8 @@
 import sys
+from typing import List
 from os.path import realpath, exists
 
+from pylox.Token import Token
 from pylox.Scanner import Scanner
 
 
@@ -9,7 +11,7 @@ class Lox:
     had_error = False
 
     @classmethod
-    def run(cls, args):
+    def run(cls: "Lox", args: List[str]) -> None:
         if len(args) > 1:
             print("Usage: pylox [script]")
             sys.exit(64)
@@ -22,7 +24,7 @@ class Lox:
             cls.run_prompt()
 
     @classmethod
-    def run_file(cls, path):
+    def run_file(cls: "Lox", path: str) -> None:
         with open(path) as input_file:
             source_input = input_file.read()
         cls.run_from_string(source_input)
@@ -32,7 +34,8 @@ class Lox:
             sys.exit(65)
 
     @classmethod
-    def run_prompt(cls, keyboard_interrupt=False):
+    def run_prompt(cls: "Lox",
+                   keyboard_interrupt: bool = False) -> None:
         while True:
             print("> ", end="")
             try:
@@ -46,7 +49,7 @@ class Lox:
             cls.had_error = False
 
     @staticmethod
-    def run_from_string(source):
+    def run_from_string(source: str) -> List[Token]:
         scanner = Scanner(source)
         tokens = scanner.scan_tokens()
 
@@ -57,10 +60,15 @@ class Lox:
         return tokens
 
     @classmethod
-    def error(cls, line_number, message):
+    def error(cls: "Lox",
+              line_number: int,
+              message: str) -> None:
         cls.report(line_number, "", message)
 
     @classmethod
-    def report(cls, line_number, where, message):
+    def report(cls: "Lox",
+               line_number: int,
+               where: str,
+               message: str) -> None:
         print("[line {}] Error {}: {}".format(line_number, where, message))        
         cls.had_error = True
