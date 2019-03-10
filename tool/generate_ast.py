@@ -81,5 +81,9 @@ class GenerateAst:
                    .format(sub_class_name))
 
 
-if __name__ == "__main__":
+def main():
     GenerateAst()
+
+
+if __name__ == "__main__":
+    main()
