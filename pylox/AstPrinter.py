@@ -1,48 +1,49 @@
 from typing import List
 
-from pylox import Expr
+from pylox.Expr import Expr, Binary, Literal, Grouping, Unary, Visitor
 from pylox.Token import Token
 from pylox.TokenType import TokenType
 
-class AstPrinter(Expr.Visitor):
 
-    def to_string(self: "AstPrinter", expr: Expr.Expr):
+class AstPrinter(Visitor):
+
+    def to_string(self: "AstPrinter", expr: Expr) -> str:
         return expr.accept(self)
 
     def visit(self, expr: Expr) -> str:
-        if isinstance(expr, Expr.Binary):
+        if isinstance(expr, Binary):
             return self.visit_binary_expr(expr)
-        elif isinstance(expr, Expr.Grouping):
+        elif isinstance(expr, Grouping):
             return self.visit_grouping_expr(expr)
-        elif isinstance(expr, Expr.Literal):
+        elif isinstance(expr, Literal):
             return self.visit_literal_expr(expr)
-        elif isinstance(expr, Expr.Unary):
+        elif isinstance(expr, Unary):
             return self.visit_unary_expr(expr)
         else:
             raise RuntimeError("Unexpected Expr sub-class: {}"
                                .format(expr.__class__.__name__))
 
     def visit_binary_expr(self: "AstPrinter",
-                          expr: Expr.Binary) -> str:
+                          expr: Binary) -> str:
         return self.parenthesize(expr.operator.lexeme,
                                  [expr.left, expr.right])
 
     def visit_grouping_expr(self: "AstPrinter",
-                            expr: Expr.Grouping) -> str:
+                            expr: Grouping) -> str:
         return self.parenthesize("group", [expr.expression])
 
     def visit_literal_expr(self: "AstPrinter",
-                           expr: Expr.Literal) -> str:
+                           expr: Literal) -> str:
         if expr.value is None: return "nil"
         return str(expr.value)
 
     def visit_unary_expr(self: "AstPrinter",
-                         expr: Expr.Unary) -> str:
+                         expr: Unary) -> str:
         return self.parenthesize(expr.operator.lexeme, [expr.right])
 
     def parenthesize(self: "AstPrinter",
                      name: str,
-                     exprs: List[Expr.Expr]) -> str:
+                     exprs: List[Expr]) -> str:
         builder = ""
         builder += "({}".format(name)
         for expr in exprs:
@@ -54,9 +55,8 @@ class AstPrinter(Expr.Visitor):
 
 
 if __name__ == "__main__":
-    expression = Expr.Binary(Expr.Unary(Token(TokenType.MINUS, "-", None, 1),
-                                        Expr.Literal(123)),
-                             Token(TokenType.STAR, "*", None, 1),
-                             Expr.Grouping(Expr.Literal(45.67)))
-    ast_printer = AstPrinter()
-    print(ast_printer.to_string(expression))
+    expression = Binary(Unary(Token(TokenType.MINUS, "-", None, 1),
+                              Literal(123)),
+                        Token(TokenType.STAR, "*", None, 1),
+                        Grouping(Literal(45.67)))
+    print(AstPrinter().to_string(expression))

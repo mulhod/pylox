@@ -37,7 +37,7 @@ class GenerateAst:
                                        parameters)
 
     def add_imports(self: "GenerateAst") -> None:
-        self.print("from typing import Any\n"
+        self.print("from typing import Optional, Any\n"
                    "\n"
                    "from pylox.Token import Token\n"
                    "\n")
@@ -45,7 +45,7 @@ class GenerateAst:
     def add_Visitor_class(self: "GenerateAst") -> None:
         self.print("class Visitor:\n"
                    "\n"
-                   "    def __str__(self: \"Visitor\") -> str:\n"
+                   "    def __str__(self: \"Visitor\") -> \"str\":\n"
                    "        return self.__class__.__name__\n"
                    "\n"
                    "    def visit(self: \"Visitor\", expr: \"Expr\") -> \"Visitor\":\n"
@@ -56,8 +56,8 @@ class GenerateAst:
                    "\n"
                    "class Expr:\n"
                    "\n"
-                   "    def accept(self: \"Expr\", visitor: Visitor) -> None:\n"
-                   "        raise NotImplementedError")
+                   "    def accept(self: \"Expr\", visitor: Visitor) -> Optional[Any]:\n"
+                   "        return visitor.visit(self)")
 
     def add_Expr_subclass(self: "GenerateAst",
                           base_class_name: str,
@@ -76,7 +76,7 @@ class GenerateAst:
             parameter_name = parameter[0]
             self.print("        self.{0} = {0}".format(parameter_name))
         self.print("\n"
-                   "    def accept(self: \"{}\", visitor: Visitor) -> \"Visitor\":\n"
+                   "    def accept(self: \"{}\", visitor: Visitor) -> Optional[Any]:\n"
                    "        return visitor.visit(self)"
                    .format(sub_class_name))
 

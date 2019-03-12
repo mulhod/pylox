@@ -1,11 +1,11 @@
-from typing import Any
+from typing import Optional, Any
 
 from pylox.Token import Token
 
 
 class Visitor:
 
-    def __str__(self: "Visitor") -> str:
+    def __str__(self: "Visitor") -> "str":
         return self.__class__.__name__
 
     def visit(self: "Visitor", expr: "Expr") -> "Visitor":
@@ -14,8 +14,8 @@ class Visitor:
 
 class Expr:
 
-    def accept(self: "Expr", visitor: Visitor) -> None:
-        raise NotImplementedError
+    def accept(self: "Expr", visitor: Visitor) -> Optional[Any]:
+        return visitor.visit(self)
 
 
 class Binary(Expr):
@@ -25,7 +25,7 @@ class Binary(Expr):
         self.operator = operator
         self.right = right
 
-    def accept(self: "Binary", visitor: Visitor) -> "Visitor":
+    def accept(self: "Binary", visitor: Visitor) -> Optional[Any]:
         return visitor.visit(self)
 
 
@@ -34,7 +34,7 @@ class Grouping(Expr):
     def __init__(self: "Grouping", expression: Expr) -> None:
         self.expression = expression
 
-    def accept(self: "Grouping", visitor: Visitor) -> "Visitor":
+    def accept(self: "Grouping", visitor: Visitor) -> Optional[Any]:
         return visitor.visit(self)
 
 
@@ -43,7 +43,7 @@ class Literal(Expr):
     def __init__(self: "Literal", value: Any) -> None:
         self.value = value
 
-    def accept(self: "Literal", visitor: Visitor) -> "Visitor":
+    def accept(self: "Literal", visitor: Visitor) -> Optional[Any]:
         return visitor.visit(self)
 
 
@@ -53,5 +53,5 @@ class Unary(Expr):
         self.operator = operator
         self.right = right
 
-    def accept(self: "Unary", visitor: Visitor) -> "Visitor":
+    def accept(self: "Unary", visitor: Visitor) -> Optional[Any]:
         return visitor.visit(self)
