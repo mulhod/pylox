@@ -6,44 +6,35 @@ from unittest import TestCase
 
 from pylox import Lox
 from pylox.Token import Token
+from pylox.Scanner import Scanner
 from pylox.TokenType import TokenType
+from pylox.AstPrinter import AstPrinter
+from pylox.Expr import Binary, Unary, Literal, Grouping
 
 test_data_dir_path = join(dirname(realpath(__file__)), "test_data")
 
 
-class TestLox(TestCase):
+class LoxTest(TestCase):
 
-    def reset(self: "TestLox") -> None:
+    def reset(self: "LoxTest") -> None:
         Lox.had_error = False
+
+
+class TestLox(LoxTest):
 
     def testSimpleSourceString(self: "TestLox") -> None:
         self.reset()
         stdout = StringIO()
         try:
-            source = "var i = 4;"
+            source = "8*9*9 == 0;"
+            expected_return_str = "(== (* (* 8.0 9.0) 9.0) 0.0)"
             with redirect_stdout(stdout):
-                actual_tokens = Lox.run_from_string(source)
+                actual_return_str = Lox.run_from_string(source)
             self.assertFalse(Lox.had_error)
-            expected_tokens = \
-                [Token(token_type, text, literal, 1)
-                 for token_type, text, literal
-                 in [(TokenType.IDENTIFIER, "var", None),
-                     (TokenType.IDENTIFIER, "i", None),
-                     (TokenType.EQUAL, "=", None),
-                     (TokenType.NUMBER, "4", 4.0),
-                     (TokenType.SEMICOLON, ";", None),
-                     (TokenType.EOF, "", None)]]
-            self.assertEqual(actual_tokens,
-                             expected_tokens)
-            expected_stdout_string = \
-                "\n".join(["TokenType.IDENTIFIER 'var' None, line 1",
-                           "TokenType.IDENTIFIER 'i' None, line 1",
-                           "TokenType.EQUAL '=' None, line 1",
-                           "TokenType.NUMBER '4' 4.0, line 1",
-                           "TokenType.SEMICOLON ';' None, line 1",
-                           "TokenType.EOF '' None, line 1\n"])
-            self.assertEqual(expected_stdout_string,
-                             stdout.getvalue())
+            self.assertEqual(actual_return_str,
+                             expected_return_str)
+            self.assertEqual(expected_return_str,
+                             stdout.getvalue().strip())
         finally:
             stdout.close()
 
@@ -65,47 +56,10 @@ class TestLox(TestCase):
         finally:
             stdout.close()
 
-    def testSourceFile(self: "TestLox") -> None:
-        self.reset()
-        source_file_path = join(test_data_dir_path, "dll.lox")
-        Lox.run_file(source_file_path)
-        self.assertFalse(Lox.had_error)
-
-    def testSourceFileWithBlockComments(self: "TestLox") -> None:
-        self.reset()
-        source_file_path = join(test_data_dir_path, "block_comment.lox")
-        Lox.run_file(source_file_path)
-        self.assertFalse(Lox.had_error)
-
     def testNonexistentSourceFile(self: "TestLox") -> None:
         self.reset()
         source_file_path = join(test_data_dir_path, "non_existent_file")
         self.assertRaises(FileNotFoundError, Lox.run_file, source_file_path)
-        self.assertFalse(Lox.had_error)
-
-    def testBlockComment1(self: "TestLox") -> None:
-        self.reset()
-        Lox.run_from_string("/*\n *hello\n */")
-        self.assertFalse(Lox.had_error)
-
-    def testBlockComment2(self: "TestLox") -> None:
-        self.reset()
-        Lox.run_from_string("/*\n *hello\n */\n")
-        self.assertFalse(Lox.had_error)
-
-    def testBlockComment3(self: "TestLox") -> None:
-        self.reset()
-        Lox.run_from_string("/*\n *hello\n */   \t   \n\n")
-        self.assertFalse(Lox.had_error)
-
-    def testBlockComment4(self: "TestLox") -> None:
-        self.reset()
-        Lox.run_from_string("/*\n *hello\n */\nvar i = 4;")
-        self.assertFalse(Lox.had_error)
-
-    def testBlockComment5(self: "TestLox") -> None:
-        self.reset()
-        Lox.run_from_string("\nvar i = 4;\n/*\n *hello\n */")
         self.assertFalse(Lox.had_error)
 
     def testInvalidBlockComment(self: "TestLox") -> None:
@@ -120,3 +74,81 @@ class TestLox(TestCase):
                 self.assertEqual(expected_error_msg, actual_error_msg)
         finally:
             stdout.close()
+
+
+class TestScanner(LoxTest):
+
+    def testSimpleSourceString(self: "TestScanner") -> None:
+        source_string = "var i = 4;"
+        scanner = Scanner(source_string)
+        actual_tokens = scanner.scan_tokens()
+        expected_tokens = \
+            [Token(token_type, text, literal, 1)
+             for token_type, text, literal
+             in [(TokenType.IDENTIFIER, "var", None),
+                 (TokenType.IDENTIFIER, "i", None),
+                 (TokenType.EQUAL, "=", None),
+                 (TokenType.NUMBER, "4", 4.0),
+                 (TokenType.SEMICOLON, ";", None),
+                 (TokenType.EOF, "", None)]]
+        self.assertEqual(actual_tokens,
+                         expected_tokens)
+
+    def testSourceFile(self: "TestScanner") -> None:
+        self.reset()
+        source_file_path = join(test_data_dir_path, "dll.lox")
+        with open(source_file_path) as input_file:
+            source_input = input_file.read()
+        scanner = Scanner(source_input)
+        scanner.scan_tokens()
+        self.assertFalse(Lox.had_error)
+
+    def testSourceFileWithBlockComments(self: "TestScanner") -> None:
+        self.reset()
+        source_file_path = join(test_data_dir_path, "block_comment.lox")
+        with open(source_file_path) as input_file:
+            source_input = input_file.read()
+        scanner = Scanner(source_input)
+        scanner.scan_tokens()
+        self.assertFalse(Lox.had_error)
+
+    def testBlockComment1(self: "TestScanner") -> None:
+        self.reset()
+        scanner = Scanner("/*\n *hello\n */")
+        scanner.scan_tokens()
+        self.assertFalse(Lox.had_error)
+
+    def testBlockComment2(self: "TestScanner") -> None:
+        self.reset()
+        scanner = Scanner("/*\n *hello\n */\n")
+        scanner.scan_tokens()
+        self.assertFalse(Lox.had_error)
+
+    def testBlockComment3(self: "TestScanner") -> None:
+        self.reset()
+        scanner = Scanner("/*\n *hello\n */   \t   \n\n")
+        scanner.scan_tokens()
+        self.assertFalse(Lox.had_error)
+
+    def testBlockComment4(self: "TestScanner") -> None:
+        self.reset()
+        scanner = Scanner("/*\n *hello\n */\nvar i = 4;")
+        scanner.scan_tokens()
+        self.assertFalse(Lox.had_error)
+
+    def testBlockComment5(self: "TestScanner") -> None:
+        self.reset()
+        scanner = Scanner("\nvar i = 4;\n/*\n *hello\n */")
+        scanner.scan_tokens()
+        self.assertFalse(Lox.had_error)
+
+
+class TestAstPrinter(TestCase):
+
+    def test(self):
+        expression = Binary(Unary(Token(TokenType.MINUS, "-", None, 1),
+                                  Literal(123)),
+                            Token(TokenType.STAR, "*", None, 1),
+                            Grouping(Literal(45.67)))
+        self.assertEqual("(* (- 123) (group 45.67))",
+                         AstPrinter().to_string(expression))

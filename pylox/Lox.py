@@ -1,9 +1,12 @@
 import sys
-from typing import List
+from typing import List, Optional
 from os.path import realpath, exists
 
 from pylox.Token import Token
+from pylox.Parser import Parser
 from pylox.Scanner import Scanner
+from pylox.TokenType import TokenType
+from pylox.AstPrinter import AstPrinter
 
 
 class Lox:
@@ -43,21 +46,24 @@ class Lox:
                     cls.run_from_string(input())
                 else:
                     raise KeyboardInterrupt()
-            except KeyboardInterrupt:
+            except (EOFError, KeyboardInterrupt):
                 print()
                 break
             cls.had_error = False
 
-    @staticmethod
-    def run_from_string(source: str) -> List[Token]:
+    @classmethod
+    def run_from_string(cls: "Lox", source: str) -> Optional[str]:
         scanner = Scanner(source)
         tokens = scanner.scan_tokens()
+        parser = Parser(tokens)
+        expression = parser.parse()
 
-        # For now, just print the tokens.
-        for token in tokens:
-            print(token)
+        # Stop if there was a syntax error.
+        if cls.had_error: return
 
-        return tokens
+        return_str = AstPrinter().to_string(expression)
+        print(return_str)
+        return return_str
 
     @classmethod
     def error(cls: "Lox",
@@ -72,3 +78,12 @@ class Lox:
                message: str) -> None:
         print("[line {}] Error {}: {}".format(line_number, where, message))        
         cls.had_error = True
+
+    @classmethod
+    def token_error(cls: "Lox", token: Token, message: str) -> None:
+        if token.token_type == TokenType.EOF:
+            cls.report(token.line_number, " at end", message)
+        else:
+            cls.report(token.line_number,
+                       " at '{}'".format(token.lexeme),
+                       message)
