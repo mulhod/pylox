@@ -6,12 +6,14 @@ from pylox.Token import Token
 from pylox.Parser import Parser
 from pylox.Scanner import Scanner
 from pylox.TokenType import TokenType
-from pylox.AstPrinter import AstPrinter
+from pylox.Interpreter import Interpreter
+from pylox.PyloxRuntimeError import PyloxRuntimeError
 
 
 class Lox:
-
+    interpreter = Interpreter()
     had_error = False
+    had_runtime_error = False
 
     @classmethod
     def run(cls: "Lox", args: List[str]) -> None:
@@ -35,6 +37,8 @@ class Lox:
         # Indicate an error in the exit code.
         if cls.had_error:
             sys.exit(65)
+        if cls.had_runtime_error:
+            sys.exit(70)
 
     @classmethod
     def run_prompt(cls: "Lox",
@@ -52,7 +56,7 @@ class Lox:
             cls.had_error = False
 
     @classmethod
-    def run_from_string(cls: "Lox", source: str) -> Optional[str]:
+    def run_from_string(cls: "Lox", source: str) -> None:
         scanner = Scanner(source)
         tokens = scanner.scan_tokens()
         parser = Parser(tokens)
@@ -61,9 +65,7 @@ class Lox:
         # Stop if there was a syntax error.
         if cls.had_error: return
 
-        return_str = AstPrinter().to_string(expression)
-        print(return_str)
-        return return_str
+        cls.interpreter.interpret(expression)
 
     @classmethod
     def error(cls: "Lox",
@@ -82,8 +84,14 @@ class Lox:
     @classmethod
     def token_error(cls: "Lox", token: Token, message: str) -> None:
         if token.token_type == TokenType.EOF:
-            cls.report(token.line_number, " at end", message)
+            cls.report(token.line_number, "at end", message)
         else:
             cls.report(token.line_number,
-                       " at '{}'".format(token.lexeme),
+                       "at '{}'".format(token.lexeme),
                        message)
+
+    @classmethod
+    def run_time_error(cls: "Lox", error: PyloxRuntimeError) -> None:
+        print("{}\n[line {}]".format(error.message,
+                                     error.token.line))
+        cls.hadRuntimeError = True

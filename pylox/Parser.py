@@ -12,7 +12,7 @@ class ParseError(RuntimeError):
 
 class Parser:
 
-    def __init__(self: "Parser", tokens: List[Token]):
+    def __init__(self: "Parser", tokens: List[Token]) -> None:
         self.current = 0
         self.tokens = tokens
 

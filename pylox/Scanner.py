@@ -199,7 +199,7 @@ class Scanner:
     def peek_next(self: "Scanner") -> str:
         if self.current + 1 >= len(self.source):
             return "\0"
-        return self.source[self.current]
+        return self.source[self.current + 1]
 
     @staticmethod
     def is_alpha(c: str) -> bool:
