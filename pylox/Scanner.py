@@ -178,7 +178,7 @@ class Scanner:
         self.advance()
 
         # Trim the surrounding quotes.
-        value = self.source[self.start + 1:self.current]
+        value = self.source[self.start + 1:self.current - 1]
         self.add_token_with_literal(TokenType.STRING, value)
 
     def match(self: "Scanner",
