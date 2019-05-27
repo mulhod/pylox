@@ -20,6 +20,11 @@ class Token:
                                             self.literal,
                                             self.line_number)
 
+    def __repr__(self: "Token") -> str:
+        return "{} '{}' {}".format(self.token_type,
+                                   self.lexeme,
+                                   self.literal)
+
     def __eq__(self: "Token", other: "Token") -> bool:
         if all([self.token_type == other.token_type,
                 self.lexeme == other.lexeme,

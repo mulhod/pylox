@@ -16,6 +16,9 @@ class Parser:
         self.current = 0
         self.tokens = tokens
 
+    def __repr__(self: "Parser") -> str:
+        return str(self.tokens)
+
     def parse(self: "Parser") -> Optional[Expr]:
         try:
             return self.expression()

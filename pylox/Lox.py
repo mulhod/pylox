@@ -93,5 +93,5 @@ class Lox:
     @classmethod
     def run_time_error(cls: "Lox", error: PyloxRuntimeError) -> None:
         print("{}\n[line {}]".format(error.message,
-                                     error.token.line))
-        cls.hadRuntimeError = True
+                                     error.token.line_number))
+        cls.had_runtime_error = True

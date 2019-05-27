@@ -18,6 +18,7 @@ class LoxTest(TestCase):
 
     def reset(self: "LoxTest") -> None:
         Lox.had_error = False
+        Lox.had_runtime_error = False
 
 
 class TestLox(LoxTest):
@@ -27,12 +28,11 @@ class TestLox(LoxTest):
         stdout = StringIO()
         try:
             source = "8*9*9 == 0;"
-            expected_return_str = "(== (* (* 8.0 9.0) 9.0) 0.0)"
+            expected_return_str = "False"
             with redirect_stdout(stdout):
-                actual_return_str = Lox.run_from_string(source)
+                Lox.run_from_string(source)
             self.assertFalse(Lox.had_error)
-            self.assertEqual(actual_return_str,
-                             expected_return_str)
+            self.assertFalse(Lox.had_runtime_error)
             self.assertEqual(expected_return_str,
                              stdout.getvalue().strip())
         finally:
@@ -42,6 +42,7 @@ class TestLox(LoxTest):
         self.reset()
         Lox.run_prompt(keyboard_interrupt=True)
         self.assertFalse(Lox.had_error)
+        self.assertFalse(Lox.had_runtime_error)
 
     def testInvalidSourceString(self: "TestLox") -> None:
         self.reset()
@@ -61,6 +62,7 @@ class TestLox(LoxTest):
         source_file_path = join(test_data_dir_path, "non_existent_file")
         self.assertRaises(FileNotFoundError, Lox.run_file, source_file_path)
         self.assertFalse(Lox.had_error)
+        self.assertFalse(Lox.had_runtime_error)
 
     def testInvalidBlockComment(self: "TestLox") -> None:
         self.reset()
@@ -69,9 +71,89 @@ class TestLox(LoxTest):
             with redirect_stdout(stdout):
                 Lox.run_from_string("/*\n *hello\n *")
                 self.assertTrue(Lox.had_error)
+                self.assertFalse(Lox.had_runtime_error)
                 expected_error_msg = "[line 3] Error : Unterminated block comment."
                 actual_error_msg = stdout.getvalue().splitlines()[0]
                 self.assertEqual(expected_error_msg, actual_error_msg)
+        finally:
+            stdout.close()
+
+    def testRuntimeError1(self: "TestLox") -> None:
+        """
+        Test case where MINUS is being applied to a non-number.
+        """
+
+        self.reset()
+        stdout = StringIO()
+        try:
+            source = "-\"hello\";"
+            expected_return_str = "Operand must be a number.\n[line 1]"
+            with redirect_stdout(stdout):
+                Lox.run_from_string(source)
+            self.assertFalse(Lox.had_error)
+            self.assertTrue(Lox.had_runtime_error)
+            self.assertEqual(expected_return_str,
+                             stdout.getvalue().strip())
+        finally:
+            stdout.close()
+
+    def testRuntimeError2(self: "TestLox") -> None:
+        """
+        Test case where one of the binary arithmetic operators is being
+        applied to a non-number for the left operand.
+        """
+
+        self.reset()
+        stdout = StringIO()
+        try:
+            source = "7*\"hello\";"
+            expected_return_str = "Operands must be numbers.\n[line 1]"
+            with redirect_stdout(stdout):
+                Lox.run_from_string(source)
+            self.assertFalse(Lox.had_error)
+            self.assertTrue(Lox.had_runtime_error)
+            self.assertEqual(expected_return_str,
+                             stdout.getvalue().strip())
+        finally:
+            stdout.close()
+
+    def testRuntimeError3(self: "TestLox") -> None:
+        """
+        Test case where one of the binary arithmetic operators is being
+        applied to a non-number for the right operand.
+        """
+
+        self.reset()
+        stdout = StringIO()
+        try:
+            source = "\"hello\"*7;"
+            expected_return_str = "Operands must be numbers.\n[line 1]"
+            with redirect_stdout(stdout):
+                Lox.run_from_string(source)
+            self.assertFalse(Lox.had_error)
+            self.assertTrue(Lox.had_runtime_error)
+            self.assertEqual(expected_return_str,
+                             stdout.getvalue().strip())
+        finally:
+            stdout.close()
+
+    def testRuntimeError4(self: "TestLox") -> None:
+        """
+        Test case where one of the binary arithmetic operators is being
+        applied to non-numbers.
+        """
+
+        self.reset()
+        stdout = StringIO()
+        try:
+            source = "\"hello\"*\"world\";"
+            expected_return_str = "Operands must be numbers.\n[line 1]"
+            with redirect_stdout(stdout):
+                Lox.run_from_string(source)
+            self.assertFalse(Lox.had_error)
+            self.assertTrue(Lox.had_runtime_error)
+            self.assertEqual(expected_return_str,
+                             stdout.getvalue().strip())
         finally:
             stdout.close()
 

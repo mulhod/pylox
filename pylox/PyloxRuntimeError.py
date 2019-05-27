@@ -7,11 +7,8 @@ class PyloxRuntimeError(RuntimeError):
     message = None
 
     def __init__(self: "PyloxRuntimeError",
-                 token: Token,
-                 message: str) -> None:
-        super(message)
+                 message: str,
+                 token: Token = None) -> None:
+        super()
         self.token = token
         self.message = message
-
-    def get_message(self: "PyloxRuntimeError") -> str:
-        return self.message

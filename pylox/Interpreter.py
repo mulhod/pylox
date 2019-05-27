@@ -56,8 +56,8 @@ class Interpreter(Visitor):
                     return float(left) + float(right)
                 if isinstance(left, str) and isinstance(right, str):
                     return str(left) + str(right)
-                raise PyloxRuntimeError(expr.operator,
-                                        "Operands must be two numbers or two strings.")
+                raise PyloxRuntimeError("Operands must be two numbers or two strings.",
+                                        token=expr.operator)
             elif expr.operator.token_type == TokenType.SLASH:
                 self.check_number_operands(expr.operator, left, right)
                 return float(left)/float(right)
@@ -74,7 +74,7 @@ class Interpreter(Visitor):
 
         else:
 
-            raise RuntimeError()
+            raise RuntimeError("Invalid expression: {}".format(expr))
 
     def evaluate(self: "Interpreter", expr: Expr) -> Optional[Any]:
         return expr.accept(self)
@@ -115,7 +115,8 @@ class Interpreter(Visitor):
                              operand) -> None:
         if isinstance(operand, float):
             return
-        raise PyloxRuntimeError(operator, "Operand must be a number.")
+        raise PyloxRuntimeError("Operand must be a number.",
+                                token=operator)
 
     def check_number_operands(self: "Interpreter",
                               operator: Token,
@@ -124,11 +125,12 @@ class Interpreter(Visitor):
         if isinstance(left, float) and isinstance(right, float):
             return
 
-        raise PyloxRuntimeError(operator, "Operands must be numbers.")
+        raise PyloxRuntimeError("Operands must be numbers.",
+                                token=operator)
 
     def interpret(self: "Interpreter", expr: Expr) -> None:
         try:
             value = self.evaluate(expr)
             print(self.stringify(value))
         except PyloxRuntimeError as error:
-            Lox.run_time_error(error)
+            Lox.Lox.run_time_error(error)
