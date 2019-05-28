@@ -167,7 +167,7 @@ class TestScanner(LoxTest):
         expected_tokens = \
             [Token(token_type, text, literal, 1)
              for token_type, text, literal
-             in [(TokenType.IDENTIFIER, "var", None),
+             in [(TokenType.VAR, "var", None),
                  (TokenType.IDENTIFIER, "i", None),
                  (TokenType.EQUAL, "=", None),
                  (TokenType.NUMBER, "4", 4.0),
