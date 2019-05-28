@@ -97,7 +97,26 @@ class TestLox(LoxTest):
         finally:
             stdout.close()
 
-    def testRuntimeError2(self: "TestLox") -> None:
+    def testRuntimeError5(self: "TestLox") -> None:
+        """
+        Test case where MINUS is being applied to a non-number.
+        """
+
+        self.reset()
+        stdout = StringIO()
+        try:
+            source = "-nil;"
+            expected_return_str = "Operand must be a number.\n[line 1]"
+            with redirect_stdout(stdout):
+                Lox.run_from_string(source)
+            self.assertFalse(Lox.had_error)
+            self.assertTrue(Lox.had_runtime_error)
+            self.assertEqual(expected_return_str,
+                             stdout.getvalue().strip())
+        finally:
+            stdout.close()
+
+    def testRuntimeError3(self: "TestLox") -> None:
         """
         Test case where one of the binary arithmetic operators is being
         applied to a non-number for the left operand.
@@ -117,7 +136,7 @@ class TestLox(LoxTest):
         finally:
             stdout.close()
 
-    def testRuntimeError3(self: "TestLox") -> None:
+    def testRuntimeError4(self: "TestLox") -> None:
         """
         Test case where one of the binary arithmetic operators is being
         applied to a non-number for the right operand.
@@ -137,7 +156,7 @@ class TestLox(LoxTest):
         finally:
             stdout.close()
 
-    def testRuntimeError4(self: "TestLox") -> None:
+    def testRuntimeError5(self: "TestLox") -> None:
         """
         Test case where one of the binary arithmetic operators is being
         applied to non-numbers.
