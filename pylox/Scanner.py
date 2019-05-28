@@ -141,7 +141,7 @@ class Scanner:
             self.advance()
 
         # See if the identifier is a reserved word.
-        text = self.source[self.start:self.current - 1]
+        text = self.source[self.start:self.current]
 
         token_type = self.keywords.get(text)
         if token_type is None:
