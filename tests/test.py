@@ -27,8 +27,8 @@ class TestLox(LoxTest):
         self.reset()
         stdout = StringIO()
         try:
-            source = "8*9*9 == 0;"
-            expected_return_str = "False"
+            source = "print 8*9*9 == 0;"
+            expected_return_str = "false"
             with redirect_stdout(stdout):
                 Lox.run_from_string(source)
             self.assertFalse(Lox.had_error)

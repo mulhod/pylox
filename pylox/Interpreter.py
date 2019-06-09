@@ -1,15 +1,30 @@
-from typing import Any, Optional
+from typing import Any, Optional, List, Union
 
 from pylox import Lox
 from pylox.Token import Token
 from pylox.TokenType import TokenType
+from pylox.Environment import Environment
 from pylox.PyloxRuntimeError import PyloxRuntimeError
-from pylox.Expr import Expr, Binary, Unary, Literal, Grouping, Visitor
+from pylox.Stmt import (Stmt, Expression, Print, Var,
+                        Visitor as StmtVisitor)
+from pylox.Expr import (Expr, Assign, Binary, Unary, Literal, Grouping,
+                        Variable, Visitor as ExprVisitor)
 
 
-class Interpreter(Visitor):
+class Interpreter(ExprVisitor, StmtVisitor):
 
-    def visit(self: "Interpreter", expr: Expr) -> Optional[Any]:
+    environment = Environment()
+
+    def interpret(self: "Interpreter",
+                  statements: List[Union[Expr, Stmt]]) -> None:
+        try:
+            for statement in statements:
+                self.execute(statement)
+        except PyloxRuntimeError as error:
+            Lox.Lox.run_time_error(error)
+
+    def visit(self: "Interpreter",
+              expr: Union[Expr, Stmt]) -> Optional[Any]:
 
         if isinstance(expr, Literal):
 
@@ -21,11 +36,15 @@ class Interpreter(Visitor):
             if expr.operator.token_type == TokenType.BANG:
                 return not self.is_truthy(right)
             elif expr.operator.token_type == TokenType.MINUS:
-                self.check_number_operand(expr.operator, right)
+                Interpreter.check_number_operand(expr.operator, right)
                 return -float(right)
 
             # Unreachable.
             return None
+
+        elif isinstance(expr, Variable):
+
+            return self.environment.get(expr.name)
 
         elif isinstance(expr, Grouping):
 
@@ -37,19 +56,19 @@ class Interpreter(Visitor):
             right = self.evaluate(expr.right)
 
             if expr.operator.token_type == TokenType.GREATER:
-                self.check_number_operands(expr.operator, left, right)
+                Interpreter.check_number_operands(expr.operator, left, right)
                 return float(left) > float(right)
             elif expr.operator.token_type == TokenType.GREATER_EQUAL:
-                self.check_number_operands(expr.operator, left, right)
+                Interpreter.check_number_operands(expr.operator, left, right)
                 return float(left) >= float(right)
             elif expr.operator.token_type == TokenType.LESS:
-                self.check_number_operands(expr.operator, left, right)
+                Interpreter.check_number_operands(expr.operator, left, right)
                 return float(left) < float(right)
             elif expr.operator.token_type == TokenType.LESS_EQUAL:
-                self.check_number_operands(expr.operator, left, right)
+                Interpreter.check_number_operands(expr.operator, left, right)
                 return float(left) <= float(right)
             elif expr.operator.token_type == TokenType.MINUS:
-                self.check_number_operands(expr.operator, left, right)
+                Interpreter.check_number_operands(expr.operator, left, right)
                 return float(left) - float(right)
             elif expr.operator.token_type == TokenType.PLUS:
                 if isinstance(left, float) and isinstance(right, float):
@@ -59,18 +78,43 @@ class Interpreter(Visitor):
                 raise PyloxRuntimeError("Operands must be two numbers or two strings.",
                                         token=expr.operator)
             elif expr.operator.token_type == TokenType.SLASH:
-                self.check_number_operands(expr.operator, left, right)
+                Interpreter.check_number_operands(expr.operator, left, right)
                 return float(left)/float(right)
             elif expr.operator.token_type == TokenType.STAR:
-                self.check_number_operands(expr.operator, left, right)
+                Interpreter.check_number_operands(expr.operator, left, right)
                 return float(left)*float(right)
             elif expr.operator.token_type == TokenType.BANG_EQUAL:
                 return not self.is_equal(left, right)
             elif expr.operator.token_type == TokenType.EQUAL_EQUAL:
-                return self.is_equal(left, right)
+                return Interpreter.is_equal(left, right)
 
             # Unreachable.
             return None
+
+        elif isinstance(expr, Expression):
+
+            self.evaluate(expr.expression)
+            return None
+
+        elif isinstance(expr, Print):
+
+            value = self.evaluate(expr.expression)
+            print(Interpreter.stringify(value))
+            return None
+
+        elif isinstance(expr, Var):
+
+            value = None
+            if expr.initializer is not None:
+                value = self.evaluate(expr.initializer)
+            self.environment.define(expr.name.lexeme, value)
+            return None
+
+        elif isinstance(expr, Assign):
+
+            value = self.evaluate(expr.value)
+            self.environment.assign(expr.name, value)
+            return value
 
         else:
 
@@ -79,15 +123,19 @@ class Interpreter(Visitor):
     def evaluate(self: "Interpreter", expr: Expr) -> Optional[Any]:
         return expr.accept(self)
 
-    def is_truthy(self: "Interpreter", obj: Optional[Any]) -> bool:
+    def execute(self: "Interpreter", stmt: Stmt):
+        stmt.accept(self)
+
+    @staticmethod
+    def is_truthy(obj: Optional[Any]) -> bool:
         if obj is None:
             return False
         if isinstance(obj, bool):
             return obj
         return True
 
-    def is_equal(self: "Interpreter",
-                 a: Optional[Any],
+    @staticmethod
+    def is_equal(a: Optional[Any],
                  b: Optional[Any]) -> bool:
 
         # nil is only equal to nil.
@@ -97,9 +145,13 @@ class Interpreter(Visitor):
             return False
         return a == b
 
-    def stringify(self: "Interpreter", obj: Optional[Any]) -> str:
+    @staticmethod
+    def stringify(obj: Optional[Any]) -> str:
         if obj is None:
             return "nil"
+
+        if isinstance(obj, bool):
+            return "true" if obj else "false"
 
         text = str(obj)
 
@@ -110,16 +162,16 @@ class Interpreter(Visitor):
 
         return text
 
-    def check_number_operand(self: "Interpreter",
-                             operator: Token,
+    @staticmethod
+    def check_number_operand(operator: Token,
                              operand) -> None:
         if isinstance(operand, float):
             return
         raise PyloxRuntimeError("Operand must be a number.",
                                 token=operator)
 
-    def check_number_operands(self: "Interpreter",
-                              operator: Token,
+    @staticmethod
+    def check_number_operands(operator: Token,
                               left,
                               right) -> None:
         if isinstance(left, float) and isinstance(right, float):
@@ -127,10 +179,3 @@ class Interpreter(Visitor):
 
         raise PyloxRuntimeError("Operands must be numbers.",
                                 token=operator)
-
-    def interpret(self: "Interpreter", expr: Expr) -> None:
-        try:
-            value = self.evaluate(expr)
-            print(self.stringify(value))
-        except PyloxRuntimeError as error:
-            Lox.Lox.run_time_error(error)
