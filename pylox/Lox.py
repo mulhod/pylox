@@ -1,5 +1,5 @@
 import sys
-from typing import List, Optional
+from typing import List
 from os.path import realpath, exists
 
 from pylox.Token import Token
@@ -8,12 +8,13 @@ from pylox.Scanner import Scanner
 from pylox.TokenType import TokenType
 from pylox.Interpreter import Interpreter
 from pylox.PyloxRuntimeError import PyloxRuntimeError
+from pylox.Stmt import Stmt
 
 
 class Lox:
-    interpreter = Interpreter()
-    had_error = False
-    had_runtime_error = False
+    interpreter = Interpreter() # type: Interpreter
+    had_error = False # type: bool
+    had_runtime_error = False # type: bool
 
     @classmethod
     def run(cls: "Lox", args: List[str]) -> None:
@@ -21,7 +22,7 @@ class Lox:
             print("Usage: pylox [script]")
             sys.exit(64)
         elif len(args) == 1:
-            path = realpath(args[0])
+            path = realpath(args[0]) # type: str
             if not exists(path):
                 raise RuntimeError("{} does not exist!".format(path))
             cls.run_file(path)
@@ -31,7 +32,7 @@ class Lox:
     @classmethod
     def run_file(cls: "Lox", path: str) -> None:
         with open(path) as input_file:
-            source_input = input_file.read()
+            source_input = input_file.read() # type: str
         cls.run_from_string(source_input)
 
         # Indicate an error in the exit code.
@@ -57,10 +58,10 @@ class Lox:
 
     @classmethod
     def run_from_string(cls: "Lox", source: str) -> None:
-        scanner = Scanner(source)
-        tokens = scanner.scan_tokens()
-        parser = Parser(tokens)
-        expression = parser.parse()
+        scanner = Scanner(source) # type: Scanner
+        tokens = scanner.scan_tokens() # type: List[Token]
+        parser = Parser(tokens) # type: Parser
+        expression = parser.parse() # type: List[Stmt]
 
         # Stop if there was a syntax error.
         if cls.had_error: return

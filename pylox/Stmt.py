@@ -1,5 +1,6 @@
 from typing import Optional, Any
 
+from typing import List
 from pylox.Token import Token
 from pylox.Expr import Expr
 
@@ -19,9 +20,20 @@ class Stmt:
         return visitor.visit(self)
 
 
+class Block(Stmt):
+
+    statements = None # type: Optional[List[Stmt]]
+
+    def __init__(self: "Block", statements: List[Stmt]) -> None:
+        self.statements = statements
+
+    def accept(self: "Block", visitor: Visitor) -> Optional[Any]:
+        return visitor.visit(self)
+
+
 class Expression(Stmt):
 
-    expression = None
+    expression = None # type: Optional[Expr]
 
     def __init__(self: "Expression", expression: Expr) -> None:
         self.expression = expression
@@ -32,7 +44,7 @@ class Expression(Stmt):
 
 class Print(Stmt):
 
-    expression = None
+    expression = None # type: Optional[Expr]
 
     def __init__(self: "Print", expression: Expr) -> None:
         self.expression = expression
@@ -43,8 +55,8 @@ class Print(Stmt):
 
 class Var(Stmt):
 
-    name = None
-    initializer = None
+    name = None # type: Optional[Token]
+    initializer = None # type: Optional[Expr]
 
     def __init__(self: "Var", name: Token, initializer: Expr) -> None:
         self.name = name

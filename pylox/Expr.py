@@ -20,8 +20,8 @@ class Expr:
 
 class Assign(Expr):
 
-    name = None
-    value = None
+    name = None # type: Optional[Token]
+    value = None # type: Optional[Expr]
 
     def __init__(self: "Assign", name: Token, value: Expr) -> None:
         self.name = name
@@ -33,9 +33,9 @@ class Assign(Expr):
 
 class Binary(Expr):
 
-    left = None
-    operator = None
-    right = None
+    left = None # type: Optional[Expr]
+    operator = None # type: Optional[Token]
+    right = None # type: Optional[Expr]
 
     def __init__(self: "Binary", left: Expr, operator: Token, right: Expr) -> None:
         self.left = left
@@ -48,7 +48,7 @@ class Binary(Expr):
 
 class Grouping(Expr):
 
-    expression = None
+    expression = None # type: Optional[Expr]
 
     def __init__(self: "Grouping", expression: Expr) -> None:
         self.expression = expression
@@ -59,7 +59,7 @@ class Grouping(Expr):
 
 class Literal(Expr):
 
-    value = None
+    value = None # type: Optional[Any]
 
     def __init__(self: "Literal", value: Any) -> None:
         self.value = value
@@ -70,8 +70,8 @@ class Literal(Expr):
 
 class Unary(Expr):
 
-    operator = None
-    right = None
+    operator = None # type: Optional[Token]
+    right = None # type: Optional[Expr]
 
     def __init__(self: "Unary", operator: Token, right: Expr) -> None:
         self.operator = operator
@@ -83,7 +83,7 @@ class Unary(Expr):
 
 class Variable(Expr):
 
-    name = None
+    name = None # type: Optional[Token]
 
     def __init__(self: "Variable", name: Token) -> None:
         self.name = name

@@ -3,7 +3,7 @@ from typing import List, Union, Optional
 from pylox import Lox
 from pylox.Token import Token
 from pylox.TokenType import TokenType
-from pylox.Stmt import Stmt, Expression, Print, Var
+from pylox.Stmt import Stmt, Expression, Print, Var, Block
 from pylox.Expr import (Expr, Assign, Binary, Unary, Literal, Grouping,
                         Variable)
 
@@ -15,14 +15,14 @@ class ParseError(RuntimeError):
 class Parser:
 
     def __init__(self: "Parser", tokens: List[Token]) -> None:
-        self.current = 0
-        self.tokens = tokens
+        self.current = 0 # type: int
+        self.tokens = tokens # type: List[Token]
 
     def __repr__(self: "Parser") -> str:
         return str(self.tokens)
 
     def parse(self: "Parser") -> List[Stmt]:
-        statements = []
+        statements = [] # type: List[Stmt]
         while not self.is_at_end():
             statements.append(self.declaration())
         return statements
@@ -42,6 +42,8 @@ class Parser:
     def statement(self: "Parser") -> Stmt:
         if self.match(TokenType.PRINT):
             return self.print_statement()
+        if self.match(TokenType.LEFT_BRACE):
+            return Block(self.block())
         return self.expression_statement()
 
     def print_statement(self: "Parser") -> Stmt:
@@ -67,6 +69,16 @@ class Parser:
         self.consume(TokenType.SEMICOLON,
                      "Expect ';' after expression.")
         return Expression(expr)
+
+    def block(self: "Parser") -> List[Stmt]:
+        statements = [] # type: List[Stmt]
+
+        while (not self.check(TokenType.RIGHT_BRACE) and
+               not self.is_at_end()):
+            statements.append(self.declaration())
+
+        self.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
+        return statements
 
     def assignment(self: "Parser") -> Expr:
         expr = self.equality()

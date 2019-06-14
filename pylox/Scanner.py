@@ -1,4 +1,4 @@
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Dict
 
 from pylox import Lox
 from pylox.Token import Token
@@ -22,26 +22,26 @@ class Scanner:
                 "this":   TokenType.THIS,
                 "true":   TokenType.TRUE,
                 "var":    TokenType.VAR,
-                "while":  TokenType.WHILE}
+                "while":  TokenType.WHILE} # type: Dict[str, TokenType]
 
     def __init__(self: "Scanner", source: str) -> None:
-        self.source = source
-        self.tokens = []
-        self.start = 0
-        self.current = 0
-        self.line_number = 1
+        self.source = source # type: str
+        self.tokens = [] # type: List[Token]
+        self.start = 0 # type: int
+        self.current = 0 # type: int
+        self.line_number = 1 # type: int
 
     def scan_tokens(self: "Scanner") -> List[Token]:
         while not self.is_at_end():
             # We are at the beginning of the next lexeme.
-            self.start = self.current
+            self.start = self.current # type: int
             self.scan_token()
 
         self.tokens.append(Token(TokenType.EOF, "", None, self.line_number))
         return self.tokens
 
     def scan_token(self: "Scanner") -> None:
-        c = self.advance()
+        c = self.advance() # type: str
         if c == "(":
             self.add_token(TokenType.LEFT_PAREN)
         elif c == ")":
@@ -87,7 +87,7 @@ class Scanner:
                 while self.peek() != "\n" and not self.is_at_end():
                     self.advance()
             elif self.match("*"):
-                found_end_block_comment = False
+                found_end_block_comment = False # type: bool
                 while not found_end_block_comment:
                     if self.match("\n"):
                         self.line_number += 1
@@ -103,7 +103,7 @@ class Scanner:
                                   "Unterminated block comment.")
                 if self.is_at_end():
                     return
-                found_newline = False
+                found_newline = False # type: bool
                 while not found_newline:
                     if self.match("\n"):
                         found_newline = True
@@ -141,9 +141,9 @@ class Scanner:
             self.advance()
 
         # See if the identifier is a reserved word.
-        text = self.source[self.start:self.current]
+        text = self.source[self.start:self.current] # type: str
 
-        token_type = self.keywords.get(text)
+        token_type = self.keywords.get(text) # type: TokenType
         if token_type is None:
             token_type = TokenType.IDENTIFIER
         self.add_token(token_type)
@@ -171,14 +171,14 @@ class Scanner:
 
         # Unterminated string.
         if self.is_at_end():
-            Lox.Lox.error(self.line_number, "Unterminated string.")
+            Lox.error(self.line_number, "Unterminated string.")
             return
 
         # The closing "."
         self.advance()
 
         # Trim the surrounding quotes.
-        value = self.source[self.start + 1:self.current - 1]
+        value = self.source[self.start + 1:self.current - 1] # type: str
         self.add_token_with_literal(TokenType.STRING, value)
 
     def match(self: "Scanner",
@@ -226,5 +226,5 @@ class Scanner:
     def add_token_with_literal(self: "Scanner",
                                token_type: TokenType,
                                literal: Optional[Any]):
-        text = self.source[self.start:self.current]
+        text = self.source[self.start:self.current] # type: str
         self.tokens.append(Token(token_type, text, literal, self.line_number))

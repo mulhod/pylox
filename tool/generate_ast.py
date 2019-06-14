@@ -22,10 +22,12 @@ class GenerateAst:
                          ("Variable", [("name", "Token")])],
                          extra_imports=["from pylox.Token import Token"])
         self.define_ast("Stmt",
-                        [("Expression", [("expression", "Expr")]),
+                        [("Block", [("statements", "List[Stmt]")]),
+                         ("Expression", [("expression", "Expr")]),
                          ("Print", [("expression", "Expr")]),
                          ("Var", [("name", "Token"), ("initializer", "Expr")])],
-                        extra_imports=["from pylox.Token import Token",
+                        extra_imports=["from typing import List",
+                                       "from pylox.Token import Token",
                                        "from pylox.Expr import Expr"])
 
     def define_ast(self: "GenerateAst",
@@ -86,15 +88,18 @@ class GenerateAst:
                    "\n"
                    .format(sub_class_name, base_class_name))
         for parameter in parameters:
-            parameter_name = parameter[0]
-            self.print("    {} = None".format(parameter_name))
+            parameter_name = parameter[0] # type: str
+            parameter_type = parameter[1] # type: str
+            self.print("    {} = None # type: Optional[{}]"
+                       .format(parameter_name,
+                               parameter_type))
         self.print("\n"
                    "    def __init__(self: \"{}\", {}) -> None:"
                    .format(sub_class_name,
                            ", ".join(["{}: {}".format(parameter, type_hint)
                                       for parameter, type_hint in parameters])))
         for parameter in parameters:
-            parameter_name = parameter[0]
+            parameter_name = parameter[0] # type: str
             self.print("        self.{0} = {0}".format(parameter_name))
         self.print("\n"
                    "    def accept(self: \"{}\", visitor: Visitor) -> Optional[Any]:\n"

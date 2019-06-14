@@ -5,7 +5,7 @@ from pylox.Token import Token
 from pylox.TokenType import TokenType
 from pylox.Environment import Environment
 from pylox.PyloxRuntimeError import PyloxRuntimeError
-from pylox.Stmt import (Stmt, Expression, Print, Var,
+from pylox.Stmt import (Stmt, Expression, Print, Var, Block,
                         Visitor as StmtVisitor)
 from pylox.Expr import (Expr, Assign, Binary, Unary, Literal, Grouping,
                         Variable, Visitor as ExprVisitor)
@@ -13,7 +13,10 @@ from pylox.Expr import (Expr, Assign, Binary, Unary, Literal, Grouping,
 
 class Interpreter(ExprVisitor, StmtVisitor):
 
-    environment = Environment()
+    environment = None # type: Optional[Environment]
+
+    def __init__(self: "Interpreter") -> None:
+        self.environment = Environment()
 
     def interpret(self: "Interpreter",
                   statements: List[Union[Expr, Stmt]]) -> None:
@@ -116,6 +119,11 @@ class Interpreter(ExprVisitor, StmtVisitor):
             self.environment.assign(expr.name, value)
             return value
 
+        elif isinstance(expr, Block):
+            self.execute_block(expr.statements,
+                               Environment(self.environment))
+            return None
+
         else:
 
             raise RuntimeError("Invalid expression: {}".format(expr))
@@ -125,6 +133,17 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     def execute(self: "Interpreter", stmt: Stmt):
         stmt.accept(self)
+
+    def execute_block(self: "Interpreter",
+                      statements: List[Stmt],
+                      environment: Environment) -> None:
+        previous = self.environment # type: Environment
+        try:
+            self.environment = environment
+            for statement in statements:
+                self.execute(statement)
+        finally:
+            self.environment = previous
 
     @staticmethod
     def is_truthy(obj: Optional[Any]) -> bool:
@@ -153,7 +172,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
         if isinstance(obj, bool):
             return "true" if obj else "false"
 
-        text = str(obj)
+        text = str(obj) # type: str
 
         # Hack. Work around Python adding ".0" to
         # integer-valued floats.
