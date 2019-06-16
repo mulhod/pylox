@@ -7,6 +7,12 @@ from pylox.TokenType import TokenType
 
 class Scanner:
 
+    source = None  # type: Optional[str]
+    tokens = None  # type: Optional[List[Token]]
+    start = None  # type: Optional[int]
+    current = None  # type: Optional[int]
+    line_number = None  # type: Optional[int]
+
     keywords = {"and":    TokenType.AND,
                 "class":  TokenType.CLASS,
                 "else":   TokenType.ELSE,
@@ -25,11 +31,11 @@ class Scanner:
                 "while":  TokenType.WHILE} # type: Dict[str, TokenType]
 
     def __init__(self: "Scanner", source: str) -> None:
-        self.source = source # type: str
-        self.tokens = [] # type: List[Token]
-        self.start = 0 # type: int
-        self.current = 0 # type: int
-        self.line_number = 1 # type: int
+        self.source = source
+        self.tokens = []
+        self.start = 0
+        self.current = 0
+        self.line_number = 1
 
     def scan_tokens(self: "Scanner") -> List[Token]:
         while not self.is_at_end():
@@ -101,8 +107,7 @@ class Scanner:
                 if not found_end_block_comment:
                     Lox.Lox.error(self.line_number,
                                   "Unterminated block comment.")
-                if self.is_at_end():
-                    return
+                if self.is_at_end(): return
                 found_newline = False # type: bool
                 while not found_newline:
                     if self.match("\n"):
@@ -137,8 +142,7 @@ class Scanner:
                 Lox.Lox.error(self.line_number, "Unexpected character.")
 
     def identifier(self: "Scanner") -> None:
-        while self.is_alphanumeric(self.peek()):
-            self.advance()
+        while self.is_alphanumeric(self.peek()): self.advance()
 
         # See if the identifier is a reserved word.
         text = self.source[self.start:self.current] # type: str
@@ -149,24 +153,22 @@ class Scanner:
         self.add_token(token_type)
 
     def number(self: "Scanner") -> None:
-        while self.is_digit(self.peek()):
-            self.advance()
+        while self.is_digit(self.peek()): self.advance()
 
         # Look for a fractional part.
         if self.peek() == "." and self.is_digit(self.peek_next()):
+
             # Consume the "."
             self.advance()
 
-            while self.is_digit(self.peek()):
-                self.advance()
+            while self.is_digit(self.peek()): self.advance()
 
         self.add_token_with_literal(TokenType.NUMBER,
                                     float(self.source[self.start:self.current]))
 
     def string(self: "Scanner") -> None:
         while self.peek() != "\"" and not self.is_at_end():
-            if self.peek() == "\n":
-                self.line_number += 1
+            if self.peek() == "\n": self.line_number += 1
             self.advance()
 
         # Unterminated string.
@@ -181,24 +183,19 @@ class Scanner:
         value = self.source[self.start + 1:self.current - 1] # type: str
         self.add_token_with_literal(TokenType.STRING, value)
 
-    def match(self: "Scanner",
-              expected: str) -> bool:
-        if self.is_at_end():
-            return False
-        if self.source[self.current] != expected:
-            return False
+    def match(self: "Scanner", expected: str) -> bool:
+        if self.is_at_end(): return False
+        if self.source[self.current] != expected: return False
 
         self.current += 1
         return True
 
     def peek(self: "Scanner") -> str:
-        if self.is_at_end():
-            return "\0"
+        if self.is_at_end(): return "\0"
         return self.source[self.current]
 
     def peek_next(self: "Scanner") -> str:
-        if self.current + 1 >= len(self.source):
-            return "\0"
+        if self.current + 1 >= len(self.source): return "\0"
         return self.source[self.current + 1]
 
     @staticmethod
@@ -219,8 +216,7 @@ class Scanner:
         self.current += 1
         return self.source[self.current - 1]
 
-    def add_token(self: "Scanner",
-                  token_type: TokenType) -> None:
+    def add_token(self: "Scanner", token_type: TokenType) -> None:
         self.add_token_with_literal(token_type, None)
 
     def add_token_with_literal(self: "Scanner",

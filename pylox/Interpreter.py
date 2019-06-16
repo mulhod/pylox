@@ -19,7 +19,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
         self.environment = Environment()
 
     def interpret(self: "Interpreter",
-                  statements: List[Union[Expr, Stmt]]) -> None:
+                  statements: List[Stmt]) -> None:
         try:
             for statement in statements:
                 self.execute(statement)
@@ -35,7 +35,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr, Unary):
 
-            right = self.evaluate(expr.right)
+            right = self.evaluate(expr.right) # type: Optional[Any]
             if expr.operator.token_type == TokenType.BANG:
                 return not self.is_truthy(right)
             elif expr.operator.token_type == TokenType.MINUS:
@@ -55,8 +55,8 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr, Binary):
 
-            left = self.evaluate(expr.left)
-            right = self.evaluate(expr.right)
+            left = self.evaluate(expr.left) # type: Optional[Any]
+            right = self.evaluate(expr.right) # type: Optional[Any]
 
             if expr.operator.token_type == TokenType.GREATER:
                 Interpreter.check_number_operands(expr.operator, left, right)
@@ -96,18 +96,19 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr, Expression):
 
-            self.evaluate(expr.expression)
+            value = self.evaluate(expr.expression) # type: Optional[Any]
+            if Lox.Lox.repl: print(Interpreter.stringify(value))
             return None
 
         elif isinstance(expr, Print):
 
-            value = self.evaluate(expr.expression)
+            value = self.evaluate(expr.expression) # type: Optional[Any]
             print(Interpreter.stringify(value))
             return None
 
         elif isinstance(expr, Var):
 
-            value = None
+            value = None # type: Optional[Any]
             if expr.initializer is not None:
                 value = self.evaluate(expr.initializer)
             self.environment.define(expr.name.lexeme, value)
@@ -115,7 +116,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr, Assign):
 
-            value = self.evaluate(expr.value)
+            value = self.evaluate(expr.value) # type: Optional[Any]
             self.environment.assign(expr.name, value)
             return value
 
@@ -131,7 +132,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
     def evaluate(self: "Interpreter", expr: Expr) -> Optional[Any]:
         return expr.accept(self)
 
-    def execute(self: "Interpreter", stmt: Stmt):
+    def execute(self: "Interpreter", stmt: Stmt) -> None:
         stmt.accept(self)
 
     def execute_block(self: "Interpreter",
@@ -147,10 +148,8 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     @staticmethod
     def is_truthy(obj: Optional[Any]) -> bool:
-        if obj is None:
-            return False
-        if isinstance(obj, bool):
-            return obj
+        if obj is None: return False
+        if isinstance(obj, bool): return obj
         return True
 
     @staticmethod
@@ -158,19 +157,15 @@ class Interpreter(ExprVisitor, StmtVisitor):
                  b: Optional[Any]) -> bool:
 
         # nil is only equal to nil.
-        if a is None and b is None:
-            return True
-        if a is None:
-            return False
+        if a is None and b is None: return True
+        if a is None: return False
         return a == b
 
     @staticmethod
     def stringify(obj: Optional[Any]) -> str:
-        if obj is None:
-            return "nil"
+        if obj is None: return "nil"
 
-        if isinstance(obj, bool):
-            return "true" if obj else "false"
+        if isinstance(obj, bool): return "true" if obj else "false"
 
         text = str(obj) # type: str
 
@@ -184,8 +179,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
     @staticmethod
     def check_number_operand(operator: Token,
                              operand) -> None:
-        if isinstance(operand, float):
-            return
+        if isinstance(operand, float): return
         raise PyloxRuntimeError("Operand must be a number.",
                                 token=operator)
 
@@ -193,8 +187,6 @@ class Interpreter(ExprVisitor, StmtVisitor):
     def check_number_operands(operator: Token,
                               left,
                               right) -> None:
-        if isinstance(left, float) and isinstance(right, float):
-            return
-
+        if isinstance(left, float) and isinstance(right, float): return
         raise PyloxRuntimeError("Operands must be numbers.",
                                 token=operator)

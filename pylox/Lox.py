@@ -15,6 +15,7 @@ class Lox:
     interpreter = Interpreter() # type: Interpreter
     had_error = False # type: bool
     had_runtime_error = False # type: bool
+    repl = False # type: bool
 
     @classmethod
     def run(cls: "Lox", args: List[str]) -> None:
@@ -27,6 +28,7 @@ class Lox:
                 raise RuntimeError("{} does not exist!".format(path))
             cls.run_file(path)
         else:
+            cls.repl = True
             cls.run_prompt()
 
     @classmethod
