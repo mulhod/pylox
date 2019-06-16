@@ -44,7 +44,7 @@ class AstPrinter(Visitor):
     def parenthesize(self: "AstPrinter",
                      name: str,
                      exprs: List[Expr]) -> str:
-        builder = ""
+        builder = "" # type: str
         builder += "({}".format(name)
         for expr in exprs:
             builder += " "
