@@ -68,6 +68,21 @@ class Literal(Expr):
         return visitor.visit(self)
 
 
+class Logical(Expr):
+
+    left = None # type: Optional[Expr]
+    operator = None # type: Optional[Token]
+    right = None # type: Optional[Expr]
+
+    def __init__(self: "Logical", left: Expr, operator: Token, right: Expr) -> None:
+        self.left = left
+        self.operator = operator
+        self.right = right
+
+    def accept(self: "Logical", visitor: Visitor) -> Optional[Any]:
+        return visitor.visit(self)
+
+
 class Unary(Expr):
 
     operator = None # type: Optional[Token]

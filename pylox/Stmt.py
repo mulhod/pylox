@@ -42,6 +42,21 @@ class Expression(Stmt):
         return visitor.visit(self)
 
 
+class If(Stmt):
+
+    condition = None # type: Optional[Expr]
+    then_branch = None # type: Optional[Stmt]
+    else_branch = None # type: Optional[Stmt]
+
+    def __init__(self: "If", condition: Expr, then_branch: Stmt, else_branch: Stmt) -> None:
+        self.condition = condition
+        self.then_branch = then_branch
+        self.else_branch = else_branch
+
+    def accept(self: "If", visitor: Visitor) -> Optional[Any]:
+        return visitor.visit(self)
+
+
 class Print(Stmt):
 
     expression = None # type: Optional[Expr]
@@ -63,4 +78,17 @@ class Var(Stmt):
         self.initializer = initializer
 
     def accept(self: "Var", visitor: Visitor) -> Optional[Any]:
+        return visitor.visit(self)
+
+
+class While(Stmt):
+
+    condition = None # type: Optional[Expr]
+    body = None # type: Optional[Stmt]
+
+    def __init__(self: "While", condition: Expr, body: Stmt) -> None:
+        self.condition = condition
+        self.body = body
+
+    def accept(self: "While", visitor: Visitor) -> Optional[Any]:
         return visitor.visit(self)

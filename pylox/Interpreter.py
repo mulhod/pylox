@@ -5,10 +5,10 @@ from pylox.Token import Token
 from pylox.TokenType import TokenType
 from pylox.Environment import Environment
 from pylox.PyloxRuntimeError import PyloxRuntimeError
-from pylox.Stmt import (Stmt, Expression, Print, Var, Block,
+from pylox.Stmt import (Stmt, Expression, Print, Var, Block, If, While,
                         Visitor as StmtVisitor)
 from pylox.Expr import (Expr, Assign, Binary, Unary, Literal, Grouping,
-                        Variable, Visitor as ExprVisitor)
+                        Variable, Logical, Visitor as ExprVisitor)
 
 
 class Interpreter(ExprVisitor, StmtVisitor):
@@ -121,8 +121,34 @@ class Interpreter(ExprVisitor, StmtVisitor):
             return value
 
         elif isinstance(expr, Block):
+
             self.execute_block(expr.statements,
                                Environment(self.environment))
+            return None
+
+        elif isinstance(expr, If):
+
+            if self.is_truthy(self.evaluate(expr.condition)):
+                self.execute(expr.then_branch)
+            elif expr.else_branch is not None:
+                self.execute(expr.else_branch)
+            return None
+
+        elif isinstance(expr, Logical):
+
+            left = self.evaluate(expr.left) # type: Optional[Any]
+
+            if expr.operator.token_type == TokenType.OR:
+                if self.is_truthy(left): return left
+            else:
+                if not self.is_truthy(left): return left
+
+            return self.evaluate(expr.right)
+
+        elif isinstance(expr, While):
+
+            while self.is_truthy(self.evaluate(expr.condition)):
+                self.execute(expr.body)
             return None
 
         else:
