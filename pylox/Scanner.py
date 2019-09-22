@@ -1,4 +1,4 @@
-from typing import List, Optional, Any, Dict
+from typing import MutableSequence, Optional, Any, Mapping
 
 from pylox import Lox
 from pylox.Token import Token
@@ -7,28 +7,29 @@ from pylox.TokenType import TokenType
 
 class Scanner:
 
-    source = None  # type: Optional[str]
-    tokens = None  # type: Optional[List[Token]]
-    start = None  # type: Optional[int]
-    current = None  # type: Optional[int]
-    line_number = None  # type: Optional[int]
+    source: str
+    tokens: MutableSequence[Token]
+    start: int
+    current: int
+    line_number: int
 
-    keywords = {"and":    TokenType.AND,
-                "class":  TokenType.CLASS,
-                "else":   TokenType.ELSE,
-                "false":  TokenType.FALSE,
-                "for":    TokenType.FOR,
-                "fun":    TokenType.FUN,
-                "if":     TokenType.IF,
-                "nil":    TokenType.NIL,
-                "or":     TokenType.OR,
-                "print":  TokenType.PRINT,
-                "return": TokenType.RETURN,
-                "super":  TokenType.SUPER,
-                "this":   TokenType.THIS,
-                "true":   TokenType.TRUE,
-                "var":    TokenType.VAR,
-                "while":  TokenType.WHILE} # type: Dict[str, TokenType]
+    keywords: Mapping[str, TokenType] = \
+        {"and":    TokenType.AND,
+         "class":  TokenType.CLASS,
+         "else":   TokenType.ELSE,
+         "false":  TokenType.FALSE,
+         "for":    TokenType.FOR,
+         "fun":    TokenType.FUN,
+         "if":     TokenType.IF,
+         "nil":    TokenType.NIL,
+         "or":     TokenType.OR,
+         "print":  TokenType.PRINT,
+         "return": TokenType.RETURN,
+         "super":  TokenType.SUPER,
+         "this":   TokenType.THIS,
+         "true":   TokenType.TRUE,
+         "var":    TokenType.VAR,
+         "while":  TokenType.WHILE}
 
     def __init__(self: "Scanner", source: str) -> None:
         self.source = source
@@ -37,17 +38,17 @@ class Scanner:
         self.current = 0
         self.line_number = 1
 
-    def scan_tokens(self: "Scanner") -> List[Token]:
+    def scan_tokens(self: "Scanner") -> MutableSequence[Token]:
         while not self.is_at_end():
             # We are at the beginning of the next lexeme.
-            self.start = self.current # type: int
+            self.start: int = self.current
             self.scan_token()
 
         self.tokens.append(Token(TokenType.EOF, "", None, self.line_number))
         return self.tokens
 
     def scan_token(self: "Scanner") -> None:
-        c = self.advance() # type: str
+        c: str = self.advance()
         if c == "(":
             self.add_token(TokenType.LEFT_PAREN)
         elif c == ")":
@@ -93,7 +94,7 @@ class Scanner:
                 while self.peek() != "\n" and not self.is_at_end():
                     self.advance()
             elif self.match("*"):
-                found_end_block_comment = False # type: bool
+                found_end_block_comment: bool = False
                 while not found_end_block_comment:
                     if self.match("\n"):
                         self.line_number += 1
@@ -108,7 +109,7 @@ class Scanner:
                     Lox.Lox.error(self.line_number,
                                   "Unterminated block comment.")
                 if self.is_at_end(): return
-                found_newline = False # type: bool
+                found_newline: bool = False
                 while not found_newline:
                     if self.match("\n"):
                         found_newline = True
@@ -145,9 +146,9 @@ class Scanner:
         while self.is_alphanumeric(self.peek()): self.advance()
 
         # See if the identifier is a reserved word.
-        text = self.source[self.start:self.current] # type: str
+        text: str = self.source[self.start:self.current]
 
-        token_type = self.keywords.get(text) # type: TokenType
+        token_type: TokenType = self.keywords.get(text)
         if token_type is None:
             token_type = TokenType.IDENTIFIER
         self.add_token(token_type)
@@ -180,7 +181,7 @@ class Scanner:
         self.advance()
 
         # Trim the surrounding quotes.
-        value = self.source[self.start + 1:self.current - 1] # type: str
+        value: str = self.source[self.start + 1:self.current - 1]
         self.add_token_with_literal(TokenType.STRING, value)
 
     def match(self: "Scanner", expected: str) -> bool:
@@ -207,7 +208,7 @@ class Scanner:
 
     @staticmethod
     def is_digit(c: str) -> bool:
-        return c >= "0" and c <= "9"
+        return "0" <= c <= "9"
 
     def is_at_end(self: "Scanner") -> bool:
         return self.current >= len(self.source)
@@ -222,5 +223,5 @@ class Scanner:
     def add_token_with_literal(self: "Scanner",
                                token_type: TokenType,
                                literal: Optional[Any]):
-        text = self.source[self.start:self.current] # type: str
+        text: str = self.source[self.start:self.current]
         self.tokens.append(Token(token_type, text, literal, self.line_number))

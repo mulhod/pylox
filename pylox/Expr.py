@@ -1,6 +1,7 @@
 from typing import Optional, Any
 
 from pylox.Token import Token
+from typing import Sequence
 
 
 class Visitor:
@@ -20,8 +21,8 @@ class Expr:
 
 class Assign(Expr):
 
-    name = None # type: Optional[Token]
-    value = None # type: Optional[Expr]
+    name: Token
+    value: Expr
 
     def __init__(self: "Assign", name: Token, value: Expr) -> None:
         self.name = name
@@ -33,9 +34,9 @@ class Assign(Expr):
 
 class Binary(Expr):
 
-    left = None # type: Optional[Expr]
-    operator = None # type: Optional[Token]
-    right = None # type: Optional[Expr]
+    left: Expr
+    operator: Token
+    right: Expr
 
     def __init__(self: "Binary", left: Expr, operator: Token, right: Expr) -> None:
         self.left = left
@@ -46,9 +47,24 @@ class Binary(Expr):
         return visitor.visit(self)
 
 
+class Call(Expr):
+
+    callee: Expr
+    paren: Token
+    arguments: Sequence[Expr]
+
+    def __init__(self: "Call", callee: Expr, paren: Token, arguments: Sequence[Expr]) -> None:
+        self.callee = callee
+        self.paren = paren
+        self.arguments = arguments
+
+    def accept(self: "Call", visitor: Visitor) -> Optional[Any]:
+        return visitor.visit(self)
+
+
 class Grouping(Expr):
 
-    expression = None # type: Optional[Expr]
+    expression: Expr
 
     def __init__(self: "Grouping", expression: Expr) -> None:
         self.expression = expression
@@ -59,7 +75,7 @@ class Grouping(Expr):
 
 class Literal(Expr):
 
-    value = None # type: Optional[Any]
+    value: Any
 
     def __init__(self: "Literal", value: Any) -> None:
         self.value = value
@@ -70,9 +86,9 @@ class Literal(Expr):
 
 class Logical(Expr):
 
-    left = None # type: Optional[Expr]
-    operator = None # type: Optional[Token]
-    right = None # type: Optional[Expr]
+    left: Expr
+    operator: Token
+    right: Expr
 
     def __init__(self: "Logical", left: Expr, operator: Token, right: Expr) -> None:
         self.left = left
@@ -85,8 +101,8 @@ class Logical(Expr):
 
 class Unary(Expr):
 
-    operator = None # type: Optional[Token]
-    right = None # type: Optional[Expr]
+    operator: Token
+    right: Expr
 
     def __init__(self: "Unary", operator: Token, right: Expr) -> None:
         self.operator = operator
@@ -98,7 +114,7 @@ class Unary(Expr):
 
 class Variable(Expr):
 
-    name = None # type: Optional[Token]
+    name: Token
 
     def __init__(self: "Variable", name: Token) -> None:
         self.name = name

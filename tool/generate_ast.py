@@ -1,4 +1,4 @@
-from typing import List, Tuple, Optional
+from typing import MutableSequence, Sequence, Tuple, Optional
 from os.path import join, dirname, realpath
 
 this_dir_path = dirname(realpath(__file__))
@@ -15,6 +15,9 @@ class GenerateAst:
                          ("Binary", [("left", "Expr"),
                                      ("operator", "Token"),
                                      ("right", "Expr")]),
+                         ("Call", [("callee", "Expr"),
+                                   ("paren", "Token"),
+                                   ("arguments", "Sequence[Expr]")]),
                          ("Grouping", [("expression", "Expr")]),
                          ("Literal", [("value", "Any")]),
                          ("Logical", [("left", "Expr"),
@@ -23,9 +26,10 @@ class GenerateAst:
                          ("Unary", [("operator", "Token"),
                                     ("right", "Expr")]),
                          ("Variable", [("name", "Token")])],
-                         extra_imports=["from pylox.Token import Token"])
+                         extra_imports=["from pylox.Token import Token",
+                                        "from typing import Sequence"])
         self.define_ast("Stmt",
-                        [("Block", [("statements", "List[Stmt]")]),
+                        [("Block", [("statements", "Sequence[Stmt]")]),
                          ("Expression", [("expression", "Expr")]),
                          ("If", [("condition", "Expr",),
                                  ("then_branch", "Stmt"),
@@ -34,16 +38,16 @@ class GenerateAst:
                          ("Var", [("name", "Token"), ("initializer", "Expr")]),
                          ("While", [("condition", "Expr"),
                                     ("body", "Stmt")])],
-                        extra_imports=["from typing import List",
+                        extra_imports=["from typing import Sequence",
                                        "from pylox.Token import Token",
                                        "from pylox.Expr import Expr"])
 
     def define_ast(self: "GenerateAst",
                    base_class_name: str,
-                   classes_and_parameters: List[Tuple[str, List[Tuple[str, str]]]],
-                   extra_imports : Optional[List[str]] = None) -> None:
+                   classes_and_parameters: Sequence[Tuple[str, Sequence[Tuple[str, str]]]],
+                   extra_imports : Optional[Sequence[str]] = None) -> None:
 
-        path = join(pylox_dir_path, "{}.py".format(base_class_name))
+        path: str = join(pylox_dir_path, "{}.py".format(base_class_name))
         with open(path, "w") as file_:
             self.print = lambda x: print(x, file=file_)
 
@@ -58,14 +62,14 @@ class GenerateAst:
                                   parameters)
 
     def add_imports(self: "GenerateAst",
-                    extra_imports : Optional[List[str]] = None) -> None:
-        imports = ["from typing import Optional, Any\n\n"]
+                    extra_imports : Optional[Sequence[str]] = None) -> None:
+        imports: MutableSequence[str] = ["from typing import Optional, Any\n\n"]
         if extra_imports is not None:
             for extra_import in extra_imports:
                 imports.append("{}\n".format(extra_import))
             imports.append("\n")
-        imports = "".join(imports)
-        self.print(imports)
+        imports_list: Sequence[str] = "".join(imports)
+        self.print(imports_list)
 
     def add_Visitor_class(self: "GenerateAst",
                           base_class_name: str) -> None:
@@ -89,16 +93,16 @@ class GenerateAst:
     def add_subclass(self: "GenerateAst",
                      base_class_name: str,
                      sub_class_name: str,
-                     parameters: List[Tuple[str, str]]) -> None:
+                     parameters: Sequence[Tuple[str, str]]) -> None:
         self.print("\n"
                    "\n"
                    "class {}({}):"
                    "\n"
                    .format(sub_class_name, base_class_name))
         for parameter in parameters:
-            parameter_name = parameter[0] # type: str
-            parameter_type = parameter[1] # type: str
-            self.print("    {} = None # type: Optional[{}]"
+            parameter_name: str = parameter[0]
+            parameter_type: str = parameter[1]
+            self.print("    {}: {}"
                        .format(parameter_name,
                                parameter_type))
         self.print("\n"
@@ -107,7 +111,7 @@ class GenerateAst:
                            ", ".join(["{}: {}".format(parameter, type_hint)
                                       for parameter, type_hint in parameters])))
         for parameter in parameters:
-            parameter_name = parameter[0] # type: str
+            parameter_name: str = parameter[0]
             self.print("        self.{0} = {0}".format(parameter_name))
         self.print("\n"
                    "    def accept(self: \"{}\", visitor: Visitor) -> Optional[Any]:\n"

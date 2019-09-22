@@ -1,4 +1,4 @@
-from typing import Any, Optional, List, Union
+from typing import Any, Optional, Sequence, MutableSequence, Union
 
 from pylox import Lox
 from pylox.Token import Token
@@ -8,18 +8,19 @@ from pylox.PyloxRuntimeError import PyloxRuntimeError
 from pylox.Stmt import (Stmt, Expression, Print, Var, Block, If, While,
                         Visitor as StmtVisitor)
 from pylox.Expr import (Expr, Assign, Binary, Unary, Literal, Grouping,
-                        Variable, Logical, Visitor as ExprVisitor)
+                        Variable, Logical, Visitor as ExprVisitor, Call)
+from pylox.LoxCallable import LoxCallable
 
 
 class Interpreter(ExprVisitor, StmtVisitor):
 
-    environment = None # type: Optional[Environment]
+    environment: Environment
 
     def __init__(self: "Interpreter") -> None:
         self.environment = Environment()
 
     def interpret(self: "Interpreter",
-                  statements: List[Stmt]) -> None:
+                  statements: Sequence[Stmt]) -> None:
         try:
             for statement in statements:
                 self.execute(statement)
@@ -35,7 +36,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr, Unary):
 
-            right = self.evaluate(expr.right) # type: Optional[Any]
+            right : Optional[Any] = self.evaluate(expr.right)
             if expr.operator.token_type == TokenType.BANG:
                 return not self.is_truthy(right)
             elif expr.operator.token_type == TokenType.MINUS:
@@ -55,8 +56,8 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr, Binary):
 
-            left = self.evaluate(expr.left) # type: Optional[Any]
-            right = self.evaluate(expr.right) # type: Optional[Any]
+            left: Optional[Any] = self.evaluate(expr.left)
+            right: Optional[Any] = self.evaluate(expr.right)
 
             if expr.operator.token_type == TokenType.GREATER:
                 Interpreter.check_number_operands(expr.operator, left, right)
@@ -94,21 +95,43 @@ class Interpreter(ExprVisitor, StmtVisitor):
             # Unreachable.
             return None
 
+        elif isinstance(expr, Call):
+
+            callee: Any = self.evaluate(expr.callee)
+
+            arguments: MutableSequence[Expr] = []
+            argument: Expr
+            for i in range(len(expr.arguments)):
+                argument = expr.arguments[i]
+                arguments.append(self.evaluate(argument))
+
+            if not callee.isinstance(LoxCallable):
+                raise PyloxRuntimeError("Can only call functions and classes.",
+                                        expr.paren)
+
+            func: LoxCallable = LoxCallable(callee)
+            if len(arguments) != func.arity:
+                raise PyloxRuntimeError("Expected {} arguments but got {}."
+                                        .format(func.arity,
+                                                len(arguments)),
+                                        expr.paren)
+            return func.call(self, arguments)
+
         elif isinstance(expr, Expression):
 
-            value = self.evaluate(expr.expression) # type: Optional[Any]
+            value: Optional[Any] = self.evaluate(expr.expression)
             if Lox.Lox.repl: print(Interpreter.stringify(value))
             return None
 
         elif isinstance(expr, Print):
 
-            value = self.evaluate(expr.expression) # type: Optional[Any]
+            value: Optional[Any] = self.evaluate(expr.expression)
             print(Interpreter.stringify(value))
             return None
 
         elif isinstance(expr, Var):
 
-            value = None # type: Optional[Any]
+            value: Optional[Any] = None
             if expr.initializer is not None:
                 value = self.evaluate(expr.initializer)
             self.environment.define(expr.name.lexeme, value)
@@ -116,7 +139,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr, Assign):
 
-            value = self.evaluate(expr.value) # type: Optional[Any]
+            value: Optional[Any] = self.evaluate(expr.value)
             self.environment.assign(expr.name, value)
             return value
 
@@ -136,7 +159,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr, Logical):
 
-            left = self.evaluate(expr.left) # type: Optional[Any]
+            left: Optional[Any] = self.evaluate(expr.left)
 
             if expr.operator.token_type == TokenType.OR:
                 if self.is_truthy(left): return left
@@ -162,9 +185,9 @@ class Interpreter(ExprVisitor, StmtVisitor):
         stmt.accept(self)
 
     def execute_block(self: "Interpreter",
-                      statements: List[Stmt],
+                      statements: Sequence[Stmt],
                       environment: Environment) -> None:
-        previous = self.environment # type: Environment
+        previous: Environment = self.environment
         try:
             self.environment = environment
             for statement in statements:
@@ -193,7 +216,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         if isinstance(obj, bool): return "true" if obj else "false"
 
-        text = str(obj) # type: str
+        text: str = str(obj)
 
         # Hack. Work around Python adding ".0" to
         # integer-valued floats.

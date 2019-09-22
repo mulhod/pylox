@@ -4,10 +4,10 @@ from pylox.TokenType import TokenType
 
 class Token:
 
-    token_type = None # type: Optional[TokenType]
-    lexeme = None # type: Optional[str]
-    literal = None # type: Optional[Any]
-    line_number = None # type: Optional[int]
+    token_type: TokenType
+    lexeme: str
+    literal: Any
+    line_number: int
 
     def __init__(self: "Token",
                  token_type: TokenType,

@@ -1,4 +1,4 @@
-from typing import List
+from typing import Sequence
 
 from pylox.Expr import Expr, Binary, Literal, Grouping, Unary, Visitor
 from pylox.Token import Token
@@ -43,8 +43,8 @@ class AstPrinter(Visitor):
 
     def parenthesize(self: "AstPrinter",
                      name: str,
-                     exprs: List[Expr]) -> str:
-        builder = "" # type: str
+                     exprs: Sequence[Expr]) -> str:
+        builder : str = ""
         builder += "({}".format(name)
         for expr in exprs:
             builder += " "

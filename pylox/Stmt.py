@@ -1,6 +1,6 @@
 from typing import Optional, Any
 
-from typing import List
+from typing import Sequence
 from pylox.Token import Token
 from pylox.Expr import Expr
 
@@ -22,9 +22,9 @@ class Stmt:
 
 class Block(Stmt):
 
-    statements = None # type: Optional[List[Stmt]]
+    statements: Sequence[Stmt]
 
-    def __init__(self: "Block", statements: List[Stmt]) -> None:
+    def __init__(self: "Block", statements: Sequence[Stmt]) -> None:
         self.statements = statements
 
     def accept(self: "Block", visitor: Visitor) -> Optional[Any]:
@@ -33,7 +33,7 @@ class Block(Stmt):
 
 class Expression(Stmt):
 
-    expression = None # type: Optional[Expr]
+    expression: Expr
 
     def __init__(self: "Expression", expression: Expr) -> None:
         self.expression = expression
@@ -44,9 +44,9 @@ class Expression(Stmt):
 
 class If(Stmt):
 
-    condition = None # type: Optional[Expr]
-    then_branch = None # type: Optional[Stmt]
-    else_branch = None # type: Optional[Stmt]
+    condition: Expr
+    then_branch: Stmt
+    else_branch: Stmt
 
     def __init__(self: "If", condition: Expr, then_branch: Stmt, else_branch: Stmt) -> None:
         self.condition = condition
@@ -59,7 +59,7 @@ class If(Stmt):
 
 class Print(Stmt):
 
-    expression = None # type: Optional[Expr]
+    expression: Expr
 
     def __init__(self: "Print", expression: Expr) -> None:
         self.expression = expression
@@ -70,8 +70,8 @@ class Print(Stmt):
 
 class Var(Stmt):
 
-    name = None # type: Optional[Token]
-    initializer = None # type: Optional[Expr]
+    name: Token
+    initializer: Expr
 
     def __init__(self: "Var", name: Token, initializer: Expr) -> None:
         self.name = name
@@ -83,8 +83,8 @@ class Var(Stmt):
 
 class While(Stmt):
 
-    condition = None # type: Optional[Expr]
-    body = None # type: Optional[Stmt]
+    condition: Expr
+    body: Stmt
 
     def __init__(self: "While", condition: Expr, body: Stmt) -> None:
         self.condition = condition
