@@ -144,7 +144,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr, Function):
 
-            function: LoxFunction = LoxFunction(expr)
+            function: LoxFunction = LoxFunction(expr, self._environment)
             self._environment.define(expr.name.lexeme, function)
             return None
 

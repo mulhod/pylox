@@ -9,9 +9,13 @@ from pylox.Return import Return
 class LoxFunction(LoxCallable):
 
     declaration: Function
+    closure: Environment
 
-    def __init__(self: "LoxFunction", declaration: Function) -> None:
+    def __init__(self: "LoxFunction",
+                 declaration: Function,
+                 closure: Environment) -> None:
         super().__init__(self)
+        self.closure = closure
         self.declaration = declaration
         self.arity = len(self.declaration.params)
 
@@ -25,7 +29,7 @@ class LoxFunction(LoxCallable):
              interpreter: Interpreter,
              arguments: Sequence[Any]) -> None:
 
-        environment: Environment = Environment(interpreter.globals)
+        environment: Environment = Environment(self.closure)
         for i, param in enumerate(self.declaration.params):
             environment.define(param.lexeme,
                                arguments[i])
