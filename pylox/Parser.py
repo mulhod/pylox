@@ -3,7 +3,8 @@ from typing import Sequence, MutableSequence, Union, Optional
 from pylox import Lox
 from pylox.Token import Token
 from pylox.TokenType import TokenType
-from pylox.Stmt import Stmt, Expression, Print, Var, Block, If, While
+from pylox.Stmt import (Stmt, Expression, Print, Var, Block, If, While,
+                        Function, Return)
 from pylox.Expr import (Expr, Assign, Binary, Unary, Literal, Grouping,
                         Logical, Variable, Call)
 
@@ -34,6 +35,7 @@ class Parser:
 
     def declaration(self: "Parser") -> Optional[Stmt]:
         try:
+            if self.match(TokenType.FUN): return self.function("function")
             if self.match(TokenType.VAR): return self.var_declaration()
             return self.statement()
         except ParseError:
@@ -44,6 +46,7 @@ class Parser:
         if self.match(TokenType.FOR): return self.for_statement()
         if self.match(TokenType.IF): return self.if_statement()
         if self.match(TokenType.PRINT): return self.print_statement()
+        if self.match(TokenType.RETURN): return self.return_statement()
         if self.match(TokenType.WHILE): return self.while_statement()
         if self.match(TokenType.LEFT_BRACE): return Block(self.block())
         return self.expression_statement()
@@ -54,7 +57,7 @@ class Parser:
         initializer: Optional[Stmt] = None
         if self.match(TokenType.SEMICOLON):
             pass
-        elif self.match(TokenType.Var):
+        elif self.match(TokenType.VAR):
             initializer = self.var_declaration()
         else:
             initializer = self.expression_statement()
@@ -99,6 +102,16 @@ class Parser:
                      "Expect ';' after value.")
         return Print(value)
 
+    def return_statement(self: "Parser") -> Stmt:
+        keyword: Token = self.previous()
+        value: Optional[Expr] = None
+        if not self.check(TokenType.SEMICOLON):
+            value = self.expression()
+
+        self.consume(TokenType.SEMICOLON,
+                     "Expect ';' after return value.")
+        return Return(keyword, value)
+
     def var_declaration(self: "Parser") -> Stmt:
         name: Token = self.consume(TokenType.IDENTIFIER,
                                    "Expect variable name.")
@@ -123,6 +136,28 @@ class Parser:
         self.consume(TokenType.SEMICOLON,
                      "Expect ';' after expression.")
         return Expression(expr)
+
+    def function(self: "Parser", kind: str) -> Function:
+        name: Token = self.consume(TokenType.IDENTIFIER,
+                                   "Expect {} name.".format(kind))
+        self.consume(TokenType.LEFT_PAREN,
+                     "Expect '(' after {} name.".format(kind))
+        parameters: MutableSequence[Token] = []
+        if not self.check(TokenType.RIGHT_PAREN):
+            while True:
+                if len(parameters) >= 255:
+                    self.error(self.peek(),
+                               "Cannot have more than 255 parameters.")
+                parameters.append(self.consume(TokenType.IDENTIFIER,
+                                               "Expect parameter name."))
+                if not self.match(TokenType.COMMA): break
+        self.consume(TokenType.RIGHT_PAREN,
+                     "Expect ')' after parameters.")
+
+        self.consume(TokenType.LEFT_BRACE,
+                     "Expect '{' before " + kind + " body.")
+        body: Sequence[Stmt] = self.block()
+        return Function(name, parameters, body)
 
     def block(self: "Parser") -> Sequence[Stmt]:
         statements: MutableSequence[Stmt] = []

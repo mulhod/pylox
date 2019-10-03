@@ -1,4 +1,5 @@
-from typing import Any, Optional, Sequence, MutableSequence, Union
+import time
+from typing import Any, Optional, Sequence, MutableSequence, Union, List
 
 from pylox import Lox
 from pylox.Token import Token
@@ -6,18 +7,36 @@ from pylox.TokenType import TokenType
 from pylox.Environment import Environment
 from pylox.PyloxRuntimeError import PyloxRuntimeError
 from pylox.Stmt import (Stmt, Expression, Print, Var, Block, If, While,
-                        Visitor as StmtVisitor)
+                        Function, Return, Visitor as StmtVisitor)
 from pylox.Expr import (Expr, Assign, Binary, Unary, Literal, Grouping,
                         Variable, Logical, Visitor as ExprVisitor, Call)
 from pylox.LoxCallable import LoxCallable
+from pylox.LoxFunction import LoxFunction
+from pylox.Return import Return as ReturnException
+
+
+class Clock(LoxCallable):
+
+    def __init__(self):
+        super().__init__(self)
+        self.arity = 0
+
+    def call(self,
+             interpreter: "Interpreter",
+             arguments: List[Any]) -> float:
+        return time.time()/1000.0
+
+    def __str__(self) -> str:
+        return "<native fn>"
 
 
 class Interpreter(ExprVisitor, StmtVisitor):
 
-    environment: Environment
+    globals: Environment = Environment()
+    _environment: Environment = globals
 
     def __init__(self: "Interpreter") -> None:
-        self.environment = Environment()
+        self.globals.define("clock", Clock)
 
     def interpret(self: "Interpreter",
                   statements: Sequence[Stmt]) -> None:
@@ -48,7 +67,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr, Variable):
 
-            return self.environment.get(expr.name)
+            return self._environment.get(expr.name)
 
         elif isinstance(expr, Grouping):
 
@@ -105,11 +124,11 @@ class Interpreter(ExprVisitor, StmtVisitor):
                 argument = expr.arguments[i]
                 arguments.append(self.evaluate(argument))
 
-            if not callee.isinstance(LoxCallable):
+            if not isinstance(callee, LoxCallable):
                 raise PyloxRuntimeError("Can only call functions and classes.",
                                         expr.paren)
 
-            func: LoxCallable = LoxCallable(callee)
+            func: LoxCallable = callee
             if len(arguments) != func.arity:
                 raise PyloxRuntimeError("Expected {} arguments but got {}."
                                         .format(func.arity,
@@ -123,30 +142,43 @@ class Interpreter(ExprVisitor, StmtVisitor):
             if Lox.Lox.repl: print(Interpreter.stringify(value))
             return None
 
+        elif isinstance(expr, Function):
+
+            function: LoxFunction = LoxFunction(expr)
+            self._environment.define(expr.name.lexeme, function)
+            return None
+
         elif isinstance(expr, Print):
 
             value: Optional[Any] = self.evaluate(expr.expression)
             print(Interpreter.stringify(value))
             return None
 
+        if isinstance(expr, Return):
+            value: Any = None
+            if expr.value != None:
+                value = self.evaluate(expr.value)
+
+            raise ReturnException(value)
+
         elif isinstance(expr, Var):
 
             value: Optional[Any] = None
             if expr.initializer is not None:
                 value = self.evaluate(expr.initializer)
-            self.environment.define(expr.name.lexeme, value)
+            self._environment.define(expr.name.lexeme, value)
             return None
 
         elif isinstance(expr, Assign):
 
             value: Optional[Any] = self.evaluate(expr.value)
-            self.environment.assign(expr.name, value)
+            self._environment.assign(expr.name, value)
             return value
 
         elif isinstance(expr, Block):
 
             self.execute_block(expr.statements,
-                               Environment(self.environment))
+                               Environment(self._environment))
             return None
 
         elif isinstance(expr, If):
@@ -187,13 +219,13 @@ class Interpreter(ExprVisitor, StmtVisitor):
     def execute_block(self: "Interpreter",
                       statements: Sequence[Stmt],
                       environment: Environment) -> None:
-        previous: Environment = self.environment
+        previous: Environment = self._environment
         try:
-            self.environment = environment
+            self._environment = environment
             for statement in statements:
                 self.execute(statement)
         finally:
-            self.environment = previous
+            self._environment = previous
 
     @staticmethod
     def is_truthy(obj: Optional[Any]) -> bool:

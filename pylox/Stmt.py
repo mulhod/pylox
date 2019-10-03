@@ -42,6 +42,21 @@ class Expression(Stmt):
         return visitor.visit(self)
 
 
+class Function(Stmt):
+
+    name: Token
+    params: Sequence[Token]
+    body: Sequence[Stmt]
+
+    def __init__(self: "Function", name: Token, params: Sequence[Token], body: Sequence[Stmt]) -> None:
+        self.name = name
+        self.params = params
+        self.body = body
+
+    def accept(self: "Function", visitor: Visitor) -> Optional[Any]:
+        return visitor.visit(self)
+
+
 class If(Stmt):
 
     condition: Expr
@@ -65,6 +80,19 @@ class Print(Stmt):
         self.expression = expression
 
     def accept(self: "Print", visitor: Visitor) -> Optional[Any]:
+        return visitor.visit(self)
+
+
+class Return(Stmt):
+
+    keyword: Token
+    value: Expr
+
+    def __init__(self: "Return", keyword: Token, value: Expr) -> None:
+        self.keyword = keyword
+        self.value = value
+
+    def accept(self: "Return", visitor: Visitor) -> Optional[Any]:
         return visitor.visit(self)
 
 
