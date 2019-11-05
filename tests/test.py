@@ -97,7 +97,7 @@ class TestLox(LoxTest):
         finally:
             stdout.close()
 
-    def testRuntimeError5(self: "TestLox") -> None:
+    def testRuntimeError2(self: "TestLox") -> None:
         """
         Test case where MINUS is being applied to a non-number.
         """

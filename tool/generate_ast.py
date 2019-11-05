@@ -1,4 +1,4 @@
-from typing import MutableSequence, Sequence, Tuple, Optional
+from typing import MutableSequence, Sequence, Tuple, Optional, Callable
 from os.path import join, dirname, realpath
 
 this_dir_path = dirname(realpath(__file__))
@@ -8,7 +8,7 @@ pylox_dir_path = join(dirname(this_dir_path), "pylox")
 class GenerateAst:
 
     def __init__(self: "GenerateAst") -> None:
-        self.print = print
+        self.print: Callable = print
         self.define_ast("Expr",
                         [("Assign", [("name", "Token"),
                                      ("value", "Expr")]),
@@ -30,20 +30,21 @@ class GenerateAst:
                                         "from typing import Sequence"])
         self.define_ast("Stmt",
                         [("Block", [("statements", "Sequence[Stmt]")]),
-                         ("Expression", [("expression", "Expr")]),
+                         ("Expression", [("expression", "Union[Expr, Stmt]")]),
                          ("Function", [("name", "Token"),
                                        ("params", "Sequence[Token]"),
                                        ("body", "Sequence[Stmt]")]),
-                         ("If", [("condition", "Expr",),
-                                 ("then_branch", "Stmt"),
-                                 ("else_branch", "Stmt")]),
-                         ("Print", [("expression", "Expr")]),
+                         ("If", [("condition", "Union[Expr, Stmt]",),
+                                 ("then_branch", "Union[Expr, Stmt]"),
+                                 ("else_branch", "Union[Expr, Stmt]")]),
+                         ("Print", [("expression", "Union[Expr, Stmt]")]),
                          ("Return", [("keyword", "Token"),
-                                     ("value", "Expr")]),
-                         ("Var", [("name", "Token"), ("initializer", "Expr")]),
-                         ("While", [("condition", "Expr"),
+                                     ("value", "Union[Expr, Stmt]")]),
+                         ("Var", [("name", "Token"),
+                                  ("initializer", "Union[Expr, Stmt]")]),
+                         ("While", [("condition", "Union[Expr, Stmt]"),
                                     ("body", "Stmt")])],
-                        extra_imports=["from typing import Sequence",
+                        extra_imports=["from typing import Sequence, Union",
                                        "from pylox.Token import Token",
                                        "from pylox.Expr import Expr"])
 
@@ -104,9 +105,11 @@ class GenerateAst:
                    "class {}({}):"
                    "\n"
                    .format(sub_class_name, base_class_name))
+        parameter_name: str
+        parameter_type: str
         for parameter in parameters:
-            parameter_name: str = parameter[0]
-            parameter_type: str = parameter[1]
+            parameter_name = parameter[0]
+            parameter_type = parameter[1]
             self.print("    {}: {}"
                        .format(parameter_name,
                                parameter_type))
@@ -116,7 +119,7 @@ class GenerateAst:
                            ", ".join(["{}: {}".format(parameter, type_hint)
                                       for parameter, type_hint in parameters])))
         for parameter in parameters:
-            parameter_name: str = parameter[0]
+            parameter_name = parameter[0]
             self.print("        self.{0} = {0}".format(parameter_name))
         self.print("\n"
                    "    def accept(self: \"{}\", visitor: Visitor) -> Optional[Any]:\n"

@@ -10,7 +10,7 @@ class AstPrinter(Visitor):
     def to_string(self: "AstPrinter", expr: Expr) -> str:
         return expr.accept(self)
 
-    def visit(self, expr: Expr) -> str:
+    def visit(self, expr: Expr):
         if isinstance(expr, Binary):
             return self.visit_binary_expr(expr)
         elif isinstance(expr, Grouping):

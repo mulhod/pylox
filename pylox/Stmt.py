@@ -1,6 +1,6 @@
 from typing import Optional, Any
 
-from typing import Sequence
+from typing import Sequence, Union
 from pylox.Token import Token
 from pylox.Expr import Expr
 
@@ -33,9 +33,9 @@ class Block(Stmt):
 
 class Expression(Stmt):
 
-    expression: Expr
+    expression: Union[Expr, Stmt]
 
-    def __init__(self: "Expression", expression: Expr) -> None:
+    def __init__(self: "Expression", expression: Union[Expr, Stmt]) -> None:
         self.expression = expression
 
     def accept(self: "Expression", visitor: Visitor) -> Optional[Any]:
@@ -59,11 +59,11 @@ class Function(Stmt):
 
 class If(Stmt):
 
-    condition: Expr
-    then_branch: Stmt
-    else_branch: Stmt
+    condition: Union[Expr, Stmt]
+    then_branch: Union[Expr, Stmt]
+    else_branch: Union[Expr, Stmt]
 
-    def __init__(self: "If", condition: Expr, then_branch: Stmt, else_branch: Stmt) -> None:
+    def __init__(self: "If", condition: Union[Expr, Stmt], then_branch: Union[Expr, Stmt], else_branch: Union[Expr, Stmt]) -> None:
         self.condition = condition
         self.then_branch = then_branch
         self.else_branch = else_branch
@@ -74,9 +74,9 @@ class If(Stmt):
 
 class Print(Stmt):
 
-    expression: Expr
+    expression: Union[Expr, Stmt]
 
-    def __init__(self: "Print", expression: Expr) -> None:
+    def __init__(self: "Print", expression: Union[Expr, Stmt]) -> None:
         self.expression = expression
 
     def accept(self: "Print", visitor: Visitor) -> Optional[Any]:
@@ -86,9 +86,9 @@ class Print(Stmt):
 class Return(Stmt):
 
     keyword: Token
-    value: Expr
+    value: Union[Expr, Stmt]
 
-    def __init__(self: "Return", keyword: Token, value: Expr) -> None:
+    def __init__(self: "Return", keyword: Token, value: Union[Expr, Stmt]) -> None:
         self.keyword = keyword
         self.value = value
 
@@ -99,9 +99,9 @@ class Return(Stmt):
 class Var(Stmt):
 
     name: Token
-    initializer: Expr
+    initializer: Union[Expr, Stmt]
 
-    def __init__(self: "Var", name: Token, initializer: Expr) -> None:
+    def __init__(self: "Var", name: Token, initializer: Union[Expr, Stmt]) -> None:
         self.name = name
         self.initializer = initializer
 
@@ -111,10 +111,10 @@ class Var(Stmt):
 
 class While(Stmt):
 
-    condition: Expr
+    condition: Union[Expr, Stmt]
     body: Stmt
 
-    def __init__(self: "While", condition: Expr, body: Stmt) -> None:
+    def __init__(self: "While", condition: Union[Expr, Stmt], body: Stmt) -> None:
         self.condition = condition
         self.body = body
 

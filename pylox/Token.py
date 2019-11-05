@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Optional, Any, Union
 
 from pylox.TokenType import TokenType
 
@@ -30,10 +30,13 @@ class Token:
                                    self.lexeme,
                                    self.literal)
 
-    def __eq__(self: "Token", other: "Token") -> bool:
-        if all([self.token_type == other.token_type,
-                self.lexeme == other.lexeme,
-                self.literal == other.literal,
-                self.line_number == other.line_number]):
+    def __eq__(self: "Token", other: object) -> bool:
+        if not isinstance(other, Token):
+            return False
+        other_token: Token = other
+        if all([self.token_type == other_token.token_type,
+                self.lexeme == other_token.lexeme,
+                self.literal == other_token.literal,
+                self.line_number == other_token.line_number]):
             return True
         return False

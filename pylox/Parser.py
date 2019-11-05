@@ -62,12 +62,12 @@ class Parser:
         else:
             initializer = self.expression_statement()
 
-        condition: Optional[Expr] = None
+        condition: Optional[Union[Expr, Stmt]] = None
         if not self.check(TokenType.SEMICOLON):
             condition = self.expression()
         self.consume(TokenType.SEMICOLON, "Expect ';' after loop condition.")
 
-        increment: Optional[Expr] = None
+        increment: Optional[Union[Expr, Stmt]] = None
         if not self.check(TokenType.RIGHT_PAREN):
             increment = self.expression()
         self.consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.")
@@ -86,10 +86,10 @@ class Parser:
 
     def if_statement(self: "Parser") -> Stmt:
         self.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.")
-        condition: Expr = self.expression()
+        condition: Union[Expr, Stmt] = self.expression()
         self.consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.")
 
-        then_branch: Stmt = self.statement()
+        then_branch: Union[Expr, Stmt] = self.statement()
         else_branch: Optional[Stmt] = None
         if self.match(TokenType.ELSE):
             else_branch = self.statement()
@@ -104,7 +104,7 @@ class Parser:
 
     def return_statement(self: "Parser") -> Stmt:
         keyword: Token = self.previous()
-        value: Optional[Expr] = None
+        value: Optional[Union[Stmt, Expr]] = None
         if not self.check(TokenType.SEMICOLON):
             value = self.expression()
 
@@ -125,7 +125,7 @@ class Parser:
 
     def while_statement(self: "Parser") -> Stmt:
         self.consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.")
-        condition: Expr = self.expression()
+        condition: Union[Expr, Stmt] = self.expression()
         self.consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.")
         body: Stmt = self.statement()
 
@@ -196,11 +196,10 @@ class Parser:
 
     def and_(self: "Parser") -> Expr:
         expr: Expr = self.equality()
-
         while self.match(TokenType.AND):
-          operator: Token = self.previous()
-          right: Expr = self.equality()
-          expr = Logical(expr, operator, right)
+            operator: Token = self.previous()
+            right: Expr = self.equality()
+            expr = Logical(expr, operator, right)
 
         return expr
 
@@ -209,7 +208,7 @@ class Parser:
         while self.match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL):
             operator: Token = self.previous()
             right: Expr = self.comparison()
-            expr: Binary = Binary(expr, operator, right)
+            expr = Binary(expr, operator, right)
         return expr
 
     def comparison(self: "Parser") -> Expr:
@@ -220,7 +219,7 @@ class Parser:
                          TokenType.LESS_EQUAL):
             operator: Token = self.previous()
             right: Expr = self.addition()
-            expr: Binary = Binary(expr, operator, right)
+            expr = Binary(expr, operator, right)
         return expr
 
     def addition(self: "Parser") -> Expr:
@@ -229,15 +228,15 @@ class Parser:
                          TokenType.PLUS):
             operator: Token = self.previous()
             right: Expr = self.multiplication()
-            expr: Binary = Binary(expr, operator, right)
+            expr = Binary(expr, operator, right)
         return expr
 
     def multiplication(self: "Parser") -> Expr:
         expr: Expr = self.unary()
         while self.match(TokenType.SLASH, TokenType.STAR):
             operator: Token = self.previous()
-            right: Expr = self.unary()
-            expr: Binary = Binary(expr, operator, right)
+            right = self.unary()
+            expr = Binary(expr, operator, right)
         return expr
 
     def unary(self: "Parser") -> Expr:
@@ -248,7 +247,7 @@ class Parser:
         return self.call()
 
     def finish_call(self: "Parser", callee: Expr) -> Expr:
-        arguments: MutableSequence[Expr] = []
+        arguments: MutableSequence[Union[Expr, Stmt]] = []
         if not self.check(TokenType.RIGHT_PAREN):
             while True:
                 if len(arguments) >= 255:

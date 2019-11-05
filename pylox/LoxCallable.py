@@ -1,4 +1,4 @@
-from typing import Sequence, Any
+from typing import List, Any
 from . import Interpreter
 
 
@@ -12,5 +12,5 @@ class LoxCallable:
 
     def call(self: "LoxCallable",
              interpreter: Interpreter,
-             arguments: Sequence[Any]) -> Any:
+             arguments: List[Any]) -> Any:
         raise NotImplementedError()

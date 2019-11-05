@@ -1,5 +1,5 @@
 import time
-from typing import Any, Optional, Sequence, MutableSequence, Union, List
+from typing import Any, Optional, Sequence, Dict, Union, List
 
 from pylox import Lox
 from pylox.Token import Token
@@ -34,6 +34,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     globals: Environment = Environment()
     _environment: Environment = globals
+    locals: Dict[Expr, int] = {}
 
     def __init__(self: "Interpreter") -> None:
         self.globals.define("clock", Clock)
@@ -47,174 +48,178 @@ class Interpreter(ExprVisitor, StmtVisitor):
             Lox.Lox.run_time_error(error)
 
     def visit(self: "Interpreter",
-              expr: Union[Expr, Stmt]) -> Optional[Any]:
+              expr_or_stmt: Union[Expr, Stmt]) -> Optional[Any]:
 
-        if isinstance(expr, Literal):
+        value: Optional[Any]
+        left: Optional[Any]
+        righ: Optional[Any]
+        if isinstance(expr_or_stmt, Literal):
 
-            return expr.value
+            return expr_or_stmt.value
 
-        elif isinstance(expr, Unary):
+        elif isinstance(expr_or_stmt, Unary):
 
-            right : Optional[Any] = self.evaluate(expr.right)
-            if expr.operator.token_type == TokenType.BANG:
+            right = self.evaluate(expr_or_stmt.right)
+            if expr_or_stmt.operator.token_type == TokenType.BANG:
                 return not self.is_truthy(right)
-            elif expr.operator.token_type == TokenType.MINUS:
-                Interpreter.check_number_operand(expr.operator, right)
+            elif expr_or_stmt.operator.token_type == TokenType.MINUS:
+                Interpreter.check_number_operand(expr_or_stmt.operator, right)
                 return -float(right)
 
             # Unreachable.
             return None
 
-        elif isinstance(expr, Variable):
+        elif isinstance(expr_or_stmt, Variable):
 
-            return self._environment.get(expr.name)
+            return self._environment.get(expr_or_stmt.name)
 
-        elif isinstance(expr, Grouping):
+        elif isinstance(expr_or_stmt, Grouping):
 
-            return self.evaluate(expr.expression)
+            return self.evaluate(expr_or_stmt.expression)
 
-        elif isinstance(expr, Binary):
+        elif isinstance(expr_or_stmt, Binary):
 
-            left: Optional[Any] = self.evaluate(expr.left)
-            right: Optional[Any] = self.evaluate(expr.right)
+            left = self.evaluate(expr_or_stmt.left)
+            right = self.evaluate(expr_or_stmt.right)
 
-            if expr.operator.token_type == TokenType.GREATER:
-                Interpreter.check_number_operands(expr.operator, left, right)
+            if expr_or_stmt.operator.token_type == TokenType.GREATER:
+                Interpreter.check_number_operands(expr_or_stmt.operator, left, right)
                 return float(left) > float(right)
-            elif expr.operator.token_type == TokenType.GREATER_EQUAL:
-                Interpreter.check_number_operands(expr.operator, left, right)
+            elif expr_or_stmt.operator.token_type == TokenType.GREATER_EQUAL:
+                Interpreter.check_number_operands(expr_or_stmt.operator, left, right)
                 return float(left) >= float(right)
-            elif expr.operator.token_type == TokenType.LESS:
-                Interpreter.check_number_operands(expr.operator, left, right)
+            elif expr_or_stmt.operator.token_type == TokenType.LESS:
+                Interpreter.check_number_operands(expr_or_stmt.operator, left, right)
                 return float(left) < float(right)
-            elif expr.operator.token_type == TokenType.LESS_EQUAL:
-                Interpreter.check_number_operands(expr.operator, left, right)
+            elif expr_or_stmt.operator.token_type == TokenType.LESS_EQUAL:
+                Interpreter.check_number_operands(expr_or_stmt.operator, left, right)
                 return float(left) <= float(right)
-            elif expr.operator.token_type == TokenType.MINUS:
-                Interpreter.check_number_operands(expr.operator, left, right)
+            elif expr_or_stmt.operator.token_type == TokenType.MINUS:
+                Interpreter.check_number_operands(expr_or_stmt.operator, left, right)
                 return float(left) - float(right)
-            elif expr.operator.token_type == TokenType.PLUS:
+            elif expr_or_stmt.operator.token_type == TokenType.PLUS:
                 if isinstance(left, float) and isinstance(right, float):
                     return float(left) + float(right)
                 if isinstance(left, str) and isinstance(right, str):
                     return str(left) + str(right)
                 raise PyloxRuntimeError("Operands must be two numbers or two strings.",
-                                        token=expr.operator)
-            elif expr.operator.token_type == TokenType.SLASH:
-                Interpreter.check_number_operands(expr.operator, left, right)
+                                        token=expr_or_stmt.operator)
+            elif expr_or_stmt.operator.token_type == TokenType.SLASH:
+                Interpreter.check_number_operands(expr_or_stmt.operator, left, right)
                 return float(left)/float(right)
-            elif expr.operator.token_type == TokenType.STAR:
-                Interpreter.check_number_operands(expr.operator, left, right)
+            elif expr_or_stmt.operator.token_type == TokenType.STAR:
+                Interpreter.check_number_operands(expr_or_stmt.operator, left, right)
                 return float(left)*float(right)
-            elif expr.operator.token_type == TokenType.BANG_EQUAL:
+            elif expr_or_stmt.operator.token_type == TokenType.BANG_EQUAL:
                 return not self.is_equal(left, right)
-            elif expr.operator.token_type == TokenType.EQUAL_EQUAL:
+            elif expr_or_stmt.operator.token_type == TokenType.EQUAL_EQUAL:
                 return Interpreter.is_equal(left, right)
 
             # Unreachable.
             return None
 
-        elif isinstance(expr, Call):
+        elif isinstance(expr_or_stmt, Call):
 
-            callee: Any = self.evaluate(expr.callee)
+            callee: Any = self.evaluate(expr_or_stmt.callee)
 
-            arguments: MutableSequence[Expr] = []
+            arguments: List[Expr] = []
             argument: Expr
-            for i in range(len(expr.arguments)):
-                argument = expr.arguments[i]
+            for i in range(len(expr_or_stmt.arguments)):
+                argument = expr_or_stmt.arguments[i]
                 arguments.append(self.evaluate(argument))
 
             if not isinstance(callee, LoxCallable):
                 raise PyloxRuntimeError("Can only call functions and classes.",
-                                        expr.paren)
+                                        expr_or_stmt.paren)
 
             func: LoxCallable = callee
             if len(arguments) != func.arity:
                 raise PyloxRuntimeError("Expected {} arguments but got {}."
                                         .format(func.arity,
                                                 len(arguments)),
-                                        expr.paren)
+                                        expr_or_stmt.paren)
             return func.call(self, arguments)
 
-        elif isinstance(expr, Expression):
+        elif isinstance(expr_or_stmt, Expression):
 
-            value: Optional[Any] = self.evaluate(expr.expression)
+            value = self.evaluate(expr_or_stmt.expression)
             if Lox.Lox.repl: print(Interpreter.stringify(value))
             return None
 
-        elif isinstance(expr, Function):
+        elif isinstance(expr_or_stmt, Function):
 
-            function: LoxFunction = LoxFunction(expr, self._environment)
-            self._environment.define(expr.name.lexeme, function)
+            function: LoxFunction = LoxFunction(expr_or_stmt, self._environment)
+            self._environment.define(expr_or_stmt.name.lexeme, function)
             return None
 
-        elif isinstance(expr, Print):
+        elif isinstance(expr_or_stmt, Print):
 
-            value: Optional[Any] = self.evaluate(expr.expression)
+            value = self.evaluate(expr_or_stmt.expression)
             print(Interpreter.stringify(value))
             return None
 
-        if isinstance(expr, Return):
-            value: Any = None
-            if expr.value != None:
-                value = self.evaluate(expr.value)
+        if isinstance(expr_or_stmt, Return):
 
+            value = None
+            if expr_or_stmt.value is not None:
+                value = self.evaluate(expr_or_stmt.value)
             raise ReturnException(value)
 
-        elif isinstance(expr, Var):
+        elif isinstance(expr_or_stmt, Var):
 
-            value: Optional[Any] = None
-            if expr.initializer is not None:
-                value = self.evaluate(expr.initializer)
-            self._environment.define(expr.name.lexeme, value)
+            value = None
+            if expr_or_stmt.initializer is not None:
+                value = self.evaluate(expr_or_stmt.initializer)
+            self._environment.define(expr_or_stmt.name.lexeme, value)
             return None
 
-        elif isinstance(expr, Assign):
+        elif isinstance(expr_or_stmt, Assign):
 
-            value: Optional[Any] = self.evaluate(expr.value)
-            self._environment.assign(expr.name, value)
+            value = self.evaluate(expr_or_stmt.value)
+            self._environment.assign(expr_or_stmt.name, value)
             return value
 
-        elif isinstance(expr, Block):
+        elif isinstance(expr_or_stmt, Block):
 
-            self.execute_block(expr.statements,
+            self.execute_block(expr_or_stmt.statements,
                                Environment(self._environment))
             return None
 
-        elif isinstance(expr, If):
+        elif isinstance(expr_or_stmt, If):
 
-            if self.is_truthy(self.evaluate(expr.condition)):
-                self.execute(expr.then_branch)
-            elif expr.else_branch is not None:
-                self.execute(expr.else_branch)
+            if self.is_truthy(self.evaluate(expr_or_stmt.condition)):
+                self.execute(expr_or_stmt.then_branch)
+            elif expr_or_stmt.else_branch is not None:
+                self.execute(expr_or_stmt.else_branch)
             return None
 
-        elif isinstance(expr, Logical):
+        elif isinstance(expr_or_stmt, Logical):
 
-            left: Optional[Any] = self.evaluate(expr.left)
-
-            if expr.operator.token_type == TokenType.OR:
+            left = self.evaluate(expr_or_stmt.left)
+            if expr_or_stmt.operator.token_type == TokenType.OR:
                 if self.is_truthy(left): return left
             else:
                 if not self.is_truthy(left): return left
+            return self.evaluate(expr_or_stmt.right)
 
-            return self.evaluate(expr.right)
+        elif isinstance(expr_or_stmt, While):
 
-        elif isinstance(expr, While):
-
-            while self.is_truthy(self.evaluate(expr.condition)):
-                self.execute(expr.body)
+            while self.is_truthy(self.evaluate(expr_or_stmt.condition)):
+                self.execute(expr_or_stmt.body)
             return None
 
         else:
 
-            raise RuntimeError("Invalid expression: {}".format(expr))
+            raise RuntimeError("Invalid expression: {}".format(expr_or_stmt))
 
-    def evaluate(self: "Interpreter", expr: Expr) -> Optional[Any]:
+    def evaluate(self: "Interpreter", expr: Union[Expr, Stmt]) -> Optional[Any]:
         return expr.accept(self)
 
-    def execute(self: "Interpreter", stmt: Stmt) -> None:
-        stmt.accept(self)
+    def resolve(self: "Interpreter", expr: Expr, depth: int) -> None:
+        locals[expr] = depth
+
+    def execute(self: "Interpreter", expr_or_stmt: Union[Expr, Stmt]) -> None:
+        expr_or_stmt.accept(self)
 
     def execute_block(self: "Interpreter",
                       statements: Sequence[Stmt],

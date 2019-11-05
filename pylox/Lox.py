@@ -12,13 +12,14 @@ from pylox.Stmt import Stmt
 
 
 class Lox:
+
     interpreter: Interpreter = Interpreter()
     had_error: bool = False
     had_runtime_error: bool = False
     repl: bool = False
 
     @classmethod
-    def run(cls: "Lox", args: Sequence[str]) -> None:
+    def run(cls, args: Sequence[str]) -> None:
         if len(args) > 1:
             print("Usage: pylox [script]")
             sys.exit(64)
@@ -32,7 +33,7 @@ class Lox:
             cls.run_prompt()
 
     @classmethod
-    def run_file(cls: "Lox", path: str) -> None:
+    def run_file(cls, path: str) -> None:
         with open(path) as input_file:
             source_input: str = input_file.read()
         cls.run_from_string(source_input)
@@ -44,7 +45,7 @@ class Lox:
             sys.exit(70)
 
     @classmethod
-    def run_prompt(cls: "Lox",
+    def run_prompt(cls,
                    keyboard_interrupt: bool = False) -> None:
         while True:
             print("> ", end="")
@@ -59,7 +60,7 @@ class Lox:
             cls.had_error = False
 
     @classmethod
-    def run_from_string(cls: "Lox", source: str) -> None:
+    def run_from_string(cls, source: str) -> None:
         scanner: Scanner = Scanner(source)
         tokens: Sequence[Token] = scanner.scan_tokens()
         parser: Parser = Parser(tokens)
@@ -71,13 +72,13 @@ class Lox:
         cls.interpreter.interpret(expression)
 
     @classmethod
-    def error(cls: "Lox",
+    def error(cls,
               line_number: int,
               message: str) -> None:
         cls.report(line_number, "", message)
 
     @classmethod
-    def report(cls: "Lox",
+    def report(cls,
                line_number: int,
                where: str,
                message: str) -> None:
@@ -85,7 +86,7 @@ class Lox:
         cls.had_error = True
 
     @classmethod
-    def token_error(cls: "Lox", token: Token, message: str) -> None:
+    def token_error(cls, token: Token, message: str) -> None:
         if token.token_type == TokenType.EOF:
             cls.report(token.line_number, "at end", message)
         else:
@@ -94,7 +95,7 @@ class Lox:
                        message)
 
     @classmethod
-    def run_time_error(cls: "Lox", error: PyloxRuntimeError) -> None:
+    def run_time_error(cls, error: PyloxRuntimeError) -> None:
         print("{}\n[line {}]".format(error.message,
                                      error.token.line_number))
         cls.had_runtime_error = True
