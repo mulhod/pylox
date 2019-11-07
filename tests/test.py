@@ -4,7 +4,7 @@ from os.path import dirname, realpath, join
 
 from unittest import TestCase
 
-from pylox import Lox
+import pylox
 from pylox.Token import Token
 from pylox.Scanner import Scanner
 from pylox.TokenType import TokenType
@@ -17,8 +17,8 @@ test_data_dir_path = join(dirname(realpath(__file__)), "test_data")
 class LoxTest(TestCase):
 
     def reset(self: "LoxTest") -> None:
-        Lox.had_error = False
-        Lox.had_runtime_error = False
+        pylox.Lox.Lox.had_error = False
+        pylox.Lox.Lox.had_runtime_error = False
 
 
 class TestLox(LoxTest):
@@ -30,9 +30,9 @@ class TestLox(LoxTest):
             source = "print 8*9*9 == 0;"
             expected_return_str = "false"
             with redirect_stdout(stdout):
-                Lox.run_from_string(source)
-            self.assertFalse(Lox.had_error)
-            self.assertFalse(Lox.had_runtime_error)
+                pylox.Lox.Lox.run_from_string(source)
+            self.assertFalse(pylox.Lox.Lox.had_error)
+            self.assertFalse(pylox.Lox.Lox.had_runtime_error)
             self.assertEqual(expected_return_str,
                              stdout.getvalue().strip())
         finally:
@@ -40,17 +40,17 @@ class TestLox(LoxTest):
 
     def testKeyboardInterrupt(self: "TestLox") -> None:
         self.reset()
-        Lox.run_prompt(keyboard_interrupt=True)
-        self.assertFalse(Lox.had_error)
-        self.assertFalse(Lox.had_runtime_error)
+        pylox.Lox.Lox.run_prompt(keyboard_interrupt=True)
+        self.assertFalse(pylox.Lox.Lox.had_error)
+        self.assertFalse(pylox.Lox.Lox.had_runtime_error)
 
     def testInvalidSourceString(self: "TestLox") -> None:
         self.reset()
         stdout = StringIO()
         try:
             with redirect_stdout(stdout):
-                Lox.run_from_string("\\")
-            self.assertTrue(Lox.had_error)
+                pylox.Lox.Lox.run_from_string("\\")
+            self.assertTrue(pylox.Lox.Lox.had_error)
             expected_error_msg = "[line 1] Error : Unexpected character."
             actual_error_msg = stdout.getvalue().splitlines()[0]
             self.assertEqual(expected_error_msg, actual_error_msg)
@@ -60,18 +60,20 @@ class TestLox(LoxTest):
     def testNonexistentSourceFile(self: "TestLox") -> None:
         self.reset()
         source_file_path = join(test_data_dir_path, "non_existent_file")
-        self.assertRaises(FileNotFoundError, Lox.run_file, source_file_path)
-        self.assertFalse(Lox.had_error)
-        self.assertFalse(Lox.had_runtime_error)
+        self.assertRaises(FileNotFoundError,
+                          pylox.Lox.Lox.run_file,
+                          source_file_path)
+        self.assertFalse(pylox.Lox.Lox.had_error)
+        self.assertFalse(pylox.Lox.Lox.had_runtime_error)
 
     def testInvalidBlockComment(self: "TestLox") -> None:
         self.reset()
         stdout = StringIO()
         try:
             with redirect_stdout(stdout):
-                Lox.run_from_string("/*\n *hello\n *")
-                self.assertTrue(Lox.had_error)
-                self.assertFalse(Lox.had_runtime_error)
+                pylox.Lox.Lox.run_from_string("/*\n *hello\n *")
+                self.assertTrue(pylox.Lox.Lox.had_error)
+                self.assertFalse(pylox.Lox.Lox.had_runtime_error)
                 expected_error_msg = "[line 3] Error : Unterminated block comment."
                 actual_error_msg = stdout.getvalue().splitlines()[0]
                 self.assertEqual(expected_error_msg, actual_error_msg)
@@ -89,9 +91,9 @@ class TestLox(LoxTest):
             source = "-\"hello\";"
             expected_return_str = "Operand must be a number.\n[line 1]"
             with redirect_stdout(stdout):
-                Lox.run_from_string(source)
-            self.assertFalse(Lox.had_error)
-            self.assertTrue(Lox.had_runtime_error)
+                pylox.Lox.Lox.run_from_string(source)
+            self.assertFalse(pylox.Lox.Lox.had_error)
+            self.assertTrue(pylox.Lox.Lox.had_runtime_error)
             self.assertEqual(expected_return_str,
                              stdout.getvalue().strip())
         finally:
@@ -108,9 +110,9 @@ class TestLox(LoxTest):
             source = "-nil;"
             expected_return_str = "Operand must be a number.\n[line 1]"
             with redirect_stdout(stdout):
-                Lox.run_from_string(source)
-            self.assertFalse(Lox.had_error)
-            self.assertTrue(Lox.had_runtime_error)
+                pylox.Lox.Lox.run_from_string(source)
+            self.assertFalse(pylox.Lox.Lox.had_error)
+            self.assertTrue(pylox.Lox.Lox.had_runtime_error)
             self.assertEqual(expected_return_str,
                              stdout.getvalue().strip())
         finally:
@@ -128,9 +130,9 @@ class TestLox(LoxTest):
             source = "7*\"hello\";"
             expected_return_str = "Operands must be numbers.\n[line 1]"
             with redirect_stdout(stdout):
-                Lox.run_from_string(source)
-            self.assertFalse(Lox.had_error)
-            self.assertTrue(Lox.had_runtime_error)
+                pylox.Lox.Lox.run_from_string(source)
+            self.assertFalse(pylox.Lox.Lox.had_error)
+            self.assertTrue(pylox.Lox.Lox.had_runtime_error)
             self.assertEqual(expected_return_str,
                              stdout.getvalue().strip())
         finally:
@@ -148,9 +150,9 @@ class TestLox(LoxTest):
             source = "\"hello\"*7;"
             expected_return_str = "Operands must be numbers.\n[line 1]"
             with redirect_stdout(stdout):
-                Lox.run_from_string(source)
-            self.assertFalse(Lox.had_error)
-            self.assertTrue(Lox.had_runtime_error)
+                pylox.Lox.Lox.run_from_string(source)
+            self.assertFalse(pylox.Lox.Lox.had_error)
+            self.assertTrue(pylox.Lox.Lox.had_runtime_error)
             self.assertEqual(expected_return_str,
                              stdout.getvalue().strip())
         finally:
@@ -168,9 +170,9 @@ class TestLox(LoxTest):
             source = "\"hello\"*\"world\";"
             expected_return_str = "Operands must be numbers.\n[line 1]"
             with redirect_stdout(stdout):
-                Lox.run_from_string(source)
-            self.assertFalse(Lox.had_error)
-            self.assertTrue(Lox.had_runtime_error)
+                pylox.Lox.Lox.run_from_string(source)
+            self.assertFalse(pylox.Lox.Lox.had_error)
+            self.assertTrue(pylox.Lox.Lox.had_runtime_error)
             self.assertEqual(expected_return_str,
                              stdout.getvalue().strip())
         finally:
@@ -202,7 +204,7 @@ class TestScanner(LoxTest):
             source_input = input_file.read()
         scanner = Scanner(source_input)
         scanner.scan_tokens()
-        self.assertFalse(Lox.had_error)
+        self.assertFalse(pylox.Lox.Lox.had_error)
 
     def testSourceFileWithBlockComments(self: "TestScanner") -> None:
         self.reset()
@@ -211,37 +213,37 @@ class TestScanner(LoxTest):
             source_input = input_file.read()
         scanner = Scanner(source_input)
         scanner.scan_tokens()
-        self.assertFalse(Lox.had_error)
+        self.assertFalse(pylox.Lox.Lox.had_error)
 
     def testBlockComment1(self: "TestScanner") -> None:
         self.reset()
         scanner = Scanner("/*\n *hello\n */")
         scanner.scan_tokens()
-        self.assertFalse(Lox.had_error)
+        self.assertFalse(pylox.Lox.Lox.had_error)
 
     def testBlockComment2(self: "TestScanner") -> None:
         self.reset()
         scanner = Scanner("/*\n *hello\n */\n")
         scanner.scan_tokens()
-        self.assertFalse(Lox.had_error)
+        self.assertFalse(pylox.Lox.Lox.had_error)
 
     def testBlockComment3(self: "TestScanner") -> None:
         self.reset()
         scanner = Scanner("/*\n *hello\n */   \t   \n\n")
         scanner.scan_tokens()
-        self.assertFalse(Lox.had_error)
+        self.assertFalse(pylox.Lox.Lox.had_error)
 
     def testBlockComment4(self: "TestScanner") -> None:
         self.reset()
         scanner = Scanner("/*\n *hello\n */\nvar i = 4;")
         scanner.scan_tokens()
-        self.assertFalse(Lox.had_error)
+        self.assertFalse(pylox.Lox.Lox.had_error)
 
     def testBlockComment5(self: "TestScanner") -> None:
         self.reset()
         scanner = Scanner("\nvar i = 4;\n/*\n *hello\n */")
         scanner.scan_tokens()
-        self.assertFalse(Lox.had_error)
+        self.assertFalse(pylox.Lox.Lox.had_error)
 
 
 class TestAstPrinter(TestCase):

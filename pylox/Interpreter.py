@@ -1,7 +1,7 @@
 import time
 from typing import Any, Optional, Sequence, Dict, Union, List
 
-from pylox import Lox
+import pylox
 from pylox.Token import Token
 from pylox.TokenType import TokenType
 from pylox.Environment import Environment
@@ -34,7 +34,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
     globals: Environment = Environment()
     _environment: Environment = globals
-    locals: Dict[Expr, int] = {}
+    _locals: Dict[Expr, int] = {}
 
     def __init__(self: "Interpreter") -> None:
         self.globals.define("clock", Clock)
@@ -45,7 +45,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
             for statement in statements:
                 self.execute(statement)
         except PyloxRuntimeError as error:
-            Lox.Lox.run_time_error(error)
+            pylox.Lox.Lox.run_time_error(error)
 
     def visit(self: "Interpreter",
               expr_or_stmt: Union[Expr, Stmt]) -> Optional[Any]:
@@ -143,7 +143,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
         elif isinstance(expr_or_stmt, Expression):
 
             value = self.evaluate(expr_or_stmt.expression)
-            if Lox.Lox.repl: print(Interpreter.stringify(value))
+            if pylox.Lox.Lox.repl: print(Interpreter.stringify(value))
             return None
 
         elif isinstance(expr_or_stmt, Function):
@@ -216,7 +216,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
         return expr.accept(self)
 
     def resolve(self: "Interpreter", expr: Expr, depth: int) -> None:
-        locals[expr] = depth
+        self._locals[expr] = depth
 
     def execute(self: "Interpreter", expr_or_stmt: Union[Expr, Stmt]) -> None:
         expr_or_stmt.accept(self)

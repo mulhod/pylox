@@ -1,6 +1,6 @@
 from typing import Sequence, MutableSequence, Union, Optional
 
-from pylox import Lox
+import pylox
 from pylox.Token import Token
 from pylox.TokenType import TokenType
 from pylox.Stmt import (Stmt, Expression, Print, Var, Block, If, While,
@@ -319,7 +319,7 @@ class Parser:
 
     @staticmethod
     def error(token: Token, message: str) -> ParseError:
-        Lox.Lox.token_error(token, message)
+        pylox.Lox.Lox.token_error(token, message)
         return ParseError()
 
     def synchronize(self: "Parser") -> None:

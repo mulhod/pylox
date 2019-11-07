@@ -2,11 +2,11 @@ import sys
 from typing import Sequence
 from os.path import realpath, exists
 
+from .Interpreter import Interpreter
 from pylox.Token import Token
 from pylox.Parser import Parser
 from pylox.Scanner import Scanner
 from pylox.TokenType import TokenType
-from pylox.Interpreter import Interpreter
 from pylox.PyloxRuntimeError import PyloxRuntimeError
 from pylox.Stmt import Stmt
 

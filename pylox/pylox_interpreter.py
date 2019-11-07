@@ -1,6 +1,6 @@
 import sys
 
-from pylox import Lox
+from .Lox import Lox
 
 def main():
     Lox.run(sys.argv[1:])

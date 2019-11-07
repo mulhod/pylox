@@ -6,6 +6,7 @@ from pylox.LoxCallable import LoxCallable
 from pylox.Environment import Environment
 from pylox.Return import Return
 
+
 class LoxFunction(LoxCallable):
 
     declaration: Function

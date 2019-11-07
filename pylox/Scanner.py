@@ -1,6 +1,6 @@
 from typing import MutableSequence, Optional, Any, Mapping
 
-from pylox import Lox
+import pylox
 from pylox.Token import Token
 from pylox.TokenType import TokenType
 
@@ -106,8 +106,8 @@ class Scanner:
                     else:
                         self.advance()
                 if not found_end_block_comment:
-                    Lox.Lox.error(self.line_number,
-                                  "Unterminated block comment.")
+                    pylox.Lox.Lox.error(self.line_number,
+                                        "Unterminated block comment.")
                 if self.is_at_end(): return
                 found_newline: bool = False
                 while not found_newline:
@@ -119,8 +119,8 @@ class Scanner:
                     elif self.is_at_end():
                         break
                     else:
-                        Lox.Lox.error(self.line_number,
-                                      "Unterminated block comment.")
+                        pylox.Lox.Lox.error(self.line_number,
+                                            "Unterminated block comment.")
                         self.advance()
             else:
                 self.add_token(TokenType.SLASH)
@@ -140,7 +140,7 @@ class Scanner:
             elif self.is_alpha(c):
                 self.identifier()
             else:
-                Lox.Lox.error(self.line_number, "Unexpected character.")
+                pylox.Lox.Lox.error(self.line_number, "Unexpected character.")
 
     def identifier(self: "Scanner") -> None:
         while self.is_alphanumeric(self.peek()): self.advance()
@@ -174,7 +174,7 @@ class Scanner:
 
         # Unterminated string.
         if self.is_at_end():
-            Lox.error(self.line_number, "Unterminated string.")
+            pylox.Lox.Lox.error(self.line_number, "Unterminated string.")
             return
 
         # The closing "."

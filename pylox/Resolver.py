@@ -1,8 +1,8 @@
 from typing import Union, Sequence, List
 
-from pylox import Lox
+import pylox
+from .Interpreter import Interpreter
 from pylox.Token import Token
-from pylox.Interpreter import Interpreter
 from pylox.Expr import (Visitor as ExprVisitor, Expr, Variable, Assign,
                         Binary, Call, Grouping, Literal, Logical, Unary)
 from pylox.Stmt import (Visitor as StmtVisitor, Stmt, Block, Var, Function,
@@ -87,9 +87,9 @@ class Resolver(ExprVisitor, StmtVisitor):
         elif isinstance(expr_or_stmt, Variable):
 
             if self.scopes and not self.scopes[-1][expr_or_stmt.name.lexeme]:
-                Lox.Lox.token_error(expr_or_stmt.name,
-                                    "Cannot read local variable in its own "
-                                    "initializer.")
+                pylox.Lox.Lox.token_error(expr_or_stmt.name,
+                                          "Cannot read local variable in its "
+                                          "own initializer.")
             self.resolve_local(expr_or_stmt, expr_or_stmt.name)
 
         elif isinstance(expr_or_stmt, Assign):
