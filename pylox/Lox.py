@@ -1,14 +1,14 @@
 import sys
+from pathlib import Path
 from typing import Sequence
-from os.path import realpath, exists
 
 from .Interpreter import Interpreter
-from pylox.Token import Token
-from pylox.Parser import Parser
-from pylox.Scanner import Scanner
-from pylox.TokenType import TokenType
-from pylox.PyloxRuntimeError import PyloxRuntimeError
-from pylox.Stmt import Stmt
+from .Parser import Parser
+from .PyloxRuntimeError import PyloxRuntimeError
+from .Scanner import Scanner
+from .Stmt import Stmt
+from .Token import Token
+from .TokenType import TokenType
 
 
 class Lox:
@@ -24,8 +24,8 @@ class Lox:
             print("Usage: pylox [script]")
             sys.exit(64)
         elif len(args) == 1:
-            path : str = realpath(args[0])
-            if not exists(path):
+            path : Path = Path(args[0]).absolute()
+            if not path.exists():
                 raise RuntimeError("{} does not exist!".format(path))
             cls.run_file(path)
         else:
@@ -33,8 +33,8 @@ class Lox:
             cls.run_prompt()
 
     @classmethod
-    def run_file(cls, path: str) -> None:
-        with open(path) as input_file:
+    def run_file(cls, path: Path) -> None:
+        with path.open() as input_file:
             source_input: str = input_file.read()
         cls.run_from_string(source_input)
 

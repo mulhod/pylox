@@ -1,12 +1,12 @@
 from typing import Sequence, MutableSequence, Union, Optional
 
 import pylox
-from pylox.Token import Token
-from pylox.TokenType import TokenType
-from pylox.Stmt import (Stmt, Expression, Print, Var, Block, If, While,
-                        Function, Return)
-from pylox.Expr import (Expr, Assign, Binary, Unary, Literal, Grouping,
-                        Logical, Variable, Call)
+from .Expr import (Assign, Binary, Call, Expr, Grouping, Literal,
+                   Logical, Unary, Variable)
+from .Stmt import (Block, Expression, Function, If, Print, Return, Stmt, Var,
+                   While)
+from .Token import Token
+from .TokenType import TokenType
 
 
 class ParseError(RuntimeError):
@@ -16,9 +16,10 @@ class ParseError(RuntimeError):
 class Parser:
 
     tokens: Sequence[Token]
+    current: int
 
     def __init__(self: "Parser", tokens: Sequence[Token]) -> None:
-        self.current: int = 0
+        self.current = 0
         self.tokens = tokens
 
     def __repr__(self: "Parser") -> str:

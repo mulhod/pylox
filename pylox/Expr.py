@@ -1,6 +1,6 @@
-from typing import Optional, Any
+from typing import Any, Optional
 
-from pylox.Token import Token
+from .Token import Token
 from typing import Sequence
 
 

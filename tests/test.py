@@ -1,17 +1,17 @@
 from io import StringIO
 from contextlib import redirect_stdout
-from os.path import dirname, realpath, join
+from pathlib import Path
 
 from unittest import TestCase
 
 import pylox
-from pylox.Token import Token
-from pylox.Scanner import Scanner
-from pylox.TokenType import TokenType
-from pylox.AstPrinter import AstPrinter
+from pylox import Token
+from pylox import TokenType
+from pylox import Scanner
+from pylox import AstPrinter
 from pylox.Expr import Binary, Unary, Literal, Grouping
 
-test_data_dir_path = join(dirname(realpath(__file__)), "test_data")
+test_data_dir_path = Path(__file__).absolute().parent / "test_data"
 
 
 class LoxTest(TestCase):
@@ -59,7 +59,7 @@ class TestLox(LoxTest):
 
     def testNonexistentSourceFile(self: "TestLox") -> None:
         self.reset()
-        source_file_path = join(test_data_dir_path, "non_existent_file")
+        source_file_path = test_data_dir_path / "non_existent_file"
         self.assertRaises(FileNotFoundError,
                           pylox.Lox.Lox.run_file,
                           source_file_path)
@@ -199,8 +199,8 @@ class TestScanner(LoxTest):
 
     def testSourceFile(self: "TestScanner") -> None:
         self.reset()
-        source_file_path = join(test_data_dir_path, "dll.lox")
-        with open(source_file_path) as input_file:
+        source_file_path = test_data_dir_path / "dll.lox"
+        with source_file_path.open() as input_file:
             source_input = input_file.read()
         scanner = Scanner(source_input)
         scanner.scan_tokens()
@@ -208,8 +208,8 @@ class TestScanner(LoxTest):
 
     def testSourceFileWithBlockComments(self: "TestScanner") -> None:
         self.reset()
-        source_file_path = join(test_data_dir_path, "block_comment.lox")
-        with open(source_file_path) as input_file:
+        source_file_path = test_data_dir_path / "block_comment.lox"
+        with source_file_path.open() as input_file:
             source_input = input_file.read()
         scanner = Scanner(source_input)
         scanner.scan_tokens()

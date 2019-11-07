@@ -1,8 +1,8 @@
-from typing import Optional, Any
+from typing import Any, Optional
 
 from typing import Sequence, Union
-from pylox.Token import Token
-from pylox.Expr import Expr
+from .Token import Token
+from .Expr import Expr
 
 
 class Visitor:

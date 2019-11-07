@@ -1,8 +1,8 @@
-from typing import MutableSequence, Optional, Any, Mapping
+from typing import Any, Mapping, MutableSequence, Optional
 
 import pylox
-from pylox.Token import Token
-from pylox.TokenType import TokenType
+from .Token import Token
+from .TokenType import TokenType
 
 
 class Scanner:

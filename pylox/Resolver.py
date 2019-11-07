@@ -1,12 +1,12 @@
 from typing import Union, Sequence, List
 
 import pylox
+from .Expr import (Assign, Binary, Call, Expr, Grouping, Literal, Logical,
+                   Variable, Visitor as ExprVisitor)
 from .Interpreter import Interpreter
-from pylox.Token import Token
-from pylox.Expr import (Visitor as ExprVisitor, Expr, Variable, Assign,
-                        Binary, Call, Grouping, Literal, Logical, Unary)
-from pylox.Stmt import (Visitor as StmtVisitor, Stmt, Block, Var, Function,
-                        Expression, If, Print, Return, While)
+from .Stmt import (Block, Expression, Function, If, Print, Return, Stmt, Var,
+                   Visitor as StmtVisitor, While)
+from .Token import Token
 
 
 class ScopeDict(dict):

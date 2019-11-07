@@ -1,6 +1,6 @@
-from typing import Optional, Any
+from typing import Any, Optional
 
-from pylox.TokenType import TokenType
+from .TokenType import TokenType
 
 
 class Token:

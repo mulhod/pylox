@@ -1,8 +1,8 @@
 from typing import Sequence
 
-from pylox.Expr import Expr, Binary, Literal, Grouping, Unary, Visitor
-from pylox.Token import Token
-from pylox.TokenType import TokenType
+from .Expr import Binary, Expr, Grouping, Literal, Unary, Visitor
+from .Token import Token
+from .TokenType import TokenType
 
 
 class AstPrinter(Visitor):

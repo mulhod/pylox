@@ -1,18 +1,18 @@
 import time
-from typing import Any, Optional, Sequence, Dict, Union, List
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 import pylox
-from pylox.Token import Token
-from pylox.TokenType import TokenType
-from pylox.Environment import Environment
-from pylox.PyloxRuntimeError import PyloxRuntimeError
-from pylox.Stmt import (Stmt, Expression, Print, Var, Block, If, While,
-                        Function, Return, Visitor as StmtVisitor)
-from pylox.Expr import (Expr, Assign, Binary, Unary, Literal, Grouping,
-                        Variable, Logical, Visitor as ExprVisitor, Call)
-from pylox.LoxCallable import LoxCallable
-from pylox.LoxFunction import LoxFunction
-from pylox.Return import Return as ReturnException
+from .Environment import Environment
+from .Expr import (Assign, Binary, Call, Expr, Literal, Logical, Grouping,
+                   Unary, Variable, Visitor as ExprVisitor)
+from .LoxCallable import LoxCallable
+from .LoxFunction import LoxFunction
+from .PyloxRuntimeError import PyloxRuntimeError
+from .Return import Return as ReturnException
+from .Stmt import (Block, Expression, Function, If, Print, Return, Stmt, Var,
+                   Visitor as StmtVisitor, While)
+from .Token import Token
+from .TokenType import TokenType
 
 
 class Clock(LoxCallable):

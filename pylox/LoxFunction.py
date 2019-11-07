@@ -1,10 +1,10 @@
 from typing import Any, Sequence
 
-from pylox.Stmt import Function
 from . import Interpreter
-from pylox.LoxCallable import LoxCallable
-from pylox.Environment import Environment
-from pylox.Return import Return
+from .Environment import Environment
+from .LoxCallable import LoxCallable
+from .Return import Return
+from .Stmt import Function
 
 
 class LoxFunction(LoxCallable):

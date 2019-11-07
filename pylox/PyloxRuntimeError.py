@@ -1,4 +1,4 @@
-from pylox.Token import Token
+from .Token import Token
 
 
 class PyloxRuntimeError(RuntimeError):

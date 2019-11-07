@@ -1,14 +1,13 @@
-from typing import MutableSequence, Sequence, Tuple, Optional, Callable
-from os.path import join, dirname, realpath
+from pathlib import Path
+from typing import Any, Callable, MutableSequence, Optional, Sequence, Tuple
 
-this_dir_path = dirname(realpath(__file__))
-pylox_dir_path = join(dirname(this_dir_path), "pylox")
+from pylox import pylox_package_dir_path
 
 
 class GenerateAst:
 
     def __init__(self: "GenerateAst") -> None:
-        self.print: Callable = print
+        self.print: Callable[[Any], None] = print
         self.define_ast("Expr",
                         [("Assign", [("name", "Token"),
                                      ("value", "Expr")]),
@@ -26,7 +25,7 @@ class GenerateAst:
                          ("Unary", [("operator", "Token"),
                                     ("right", "Expr")]),
                          ("Variable", [("name", "Token")])],
-                         extra_imports=["from pylox.Token import Token",
+                         extra_imports=["from .Token import Token",
                                         "from typing import Sequence"])
         self.define_ast("Stmt",
                         [("Block", [("statements", "Sequence[Stmt]")]),
@@ -45,16 +44,16 @@ class GenerateAst:
                          ("While", [("condition", "Union[Expr, Stmt]"),
                                     ("body", "Stmt")])],
                         extra_imports=["from typing import Sequence, Union",
-                                       "from pylox.Token import Token",
-                                       "from pylox.Expr import Expr"])
+                                       "from .Token import Token",
+                                       "from .Expr import Expr"])
 
     def define_ast(self: "GenerateAst",
                    base_class_name: str,
                    classes_and_parameters: Sequence[Tuple[str, Sequence[Tuple[str, str]]]],
                    extra_imports : Optional[Sequence[str]] = None) -> None:
 
-        path: str = join(pylox_dir_path, "{}.py".format(base_class_name))
-        with open(path, "w") as file_:
+        path: Path = pylox_package_dir_path / "{}.py".format(base_class_name)
+        with path.open("w") as file_:
             self.print = lambda x: print(x, file=file_)
 
             self.add_imports(extra_imports=extra_imports)
@@ -69,7 +68,7 @@ class GenerateAst:
 
     def add_imports(self: "GenerateAst",
                     extra_imports : Optional[Sequence[str]] = None) -> None:
-        imports: MutableSequence[str] = ["from typing import Optional, Any\n\n"]
+        imports: MutableSequence[str] = ["from typing import Any, Optional\n\n"]
         if extra_imports is not None:
             for extra_import in extra_imports:
                 imports.append("{}\n".format(extra_import))

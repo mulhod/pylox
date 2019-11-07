@@ -1,7 +1,7 @@
 from typing import Any, MutableMapping, Optional
 
-from pylox.Token import Token
-from pylox.PyloxRuntimeError import PyloxRuntimeError
+from .PyloxRuntimeError import PyloxRuntimeError
+from .Token import Token
 
 
 class Environment:
