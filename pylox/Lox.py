@@ -5,6 +5,7 @@ from typing import Sequence
 from .Interpreter import Interpreter
 from .Parser import Parser
 from .PyloxRuntimeError import PyloxRuntimeError
+from .Resolver import Resolver
 from .Scanner import Scanner
 from .Stmt import Stmt
 from .Token import Token
@@ -64,12 +65,14 @@ class Lox:
         scanner: Scanner = Scanner(source)
         tokens: Sequence[Token] = scanner.scan_tokens()
         parser: Parser = Parser(tokens)
-        expression : Sequence[Stmt] = parser.parse()
+        statements: Sequence[Stmt] = parser.parse()
 
         # Stop if there was a syntax error.
         if cls.had_error: return
 
-        cls.interpreter.interpret(expression)
+        resolver: Resolver = Resolver(cls.interpreter)
+        resolver.resolve_multi(statements)
+        cls.interpreter.interpret(statements)
 
     @classmethod
     def error(cls,

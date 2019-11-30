@@ -49,3 +49,21 @@ class Environment:
 
     def define(self: "Environment", name: str, value: Any) -> None:
         self.values[name] = value
+
+    def get_at(self: "Environment", distance: int, name: str) -> Any:
+        return self.ancestor(distance).values[name]
+
+    def assign_at(self: "Environment",
+                  distance: int,
+                  name: Token,
+                  value: Any) -> None:
+        x = self.ancestor(distance).values
+        x[name.lexeme] = value
+
+    def ancestor(self: "Environment", distance: int) -> "Environment":
+        environment: Environment = self
+        i: int = 0
+        while i < distance:
+            environment = environment.enclosing
+            i += 1
+        return environment

@@ -1,9 +1,9 @@
 import sys
 
-from .Lox import Lox
+import pylox
 
 def main():
-    Lox.run(sys.argv[1:])
+    pylox.Lox.Lox.run(sys.argv[1:])
 
 
 if __name__ == "__main__":

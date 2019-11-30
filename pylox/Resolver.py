@@ -86,7 +86,7 @@ class Resolver(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr_or_stmt, Variable):
 
-            if self.scopes and not self.scopes[-1][expr_or_stmt.name.lexeme]:
+            if self.scopes and self.scopes[-1].get(expr_or_stmt.name.lexeme) == False:
                 pylox.Lox.Lox.token_error(expr_or_stmt.name,
                                           "Cannot read local variable in its "
                                           "own initializer.")
@@ -149,9 +149,11 @@ class Resolver(ExprVisitor, StmtVisitor):
 
     def begin_scope(self: "Resolver") -> None:
         self.scopes.append(ScopeDict())
+        return
 
     def end_scope(self: "Resolver") -> None:
         self.scopes.pop()
+        return
 
     def declare(self: "Resolver", name: Token) -> None:
         if not self.scopes: return
@@ -160,14 +162,14 @@ class Resolver(ExprVisitor, StmtVisitor):
 
     def define(self: "Resolver", name: Token) -> None:
         if not self.scopes: return
-        self.scopes[-1][name.lexeme] = True
+        scope: ScopeDict = self.scopes[-1]
+        scope[name.lexeme] = True
 
     def resolve_local(self: "Resolver", expr: Expr, name: Token) -> None:
         max_scope_i: int = len(self.scopes) - 1
         i: int = int(max_scope_i)
         while i >= 0:
             if name.lexeme in self.scopes[i]:
-                (self.interpreter
-                 .resolve_expr_in_scope_i(expr, max_scope_i - i))
+                self.interpreter.resolve(expr, max_scope_i - i)
                 return
             i -= 1

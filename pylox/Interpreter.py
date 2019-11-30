@@ -32,12 +32,12 @@ class Clock(LoxCallable):
 
 class Interpreter(ExprVisitor, StmtVisitor):
 
-    globals: Environment = Environment()
-    _environment: Environment = globals
+    _globals: Environment = Environment()
+    _environment: Environment = _globals
     _locals: Dict[Expr, int] = {}
 
     def __init__(self: "Interpreter") -> None:
-        self.globals.define("clock", Clock)
+        self._globals.define("clock", Clock)
 
     def interpret(self: "Interpreter",
                   statements: Sequence[Stmt]) -> None:
@@ -71,7 +71,8 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr_or_stmt, Variable):
 
-            return self._environment.get(expr_or_stmt.name)
+            return self.look_up_variable(expr_or_stmt.name,
+                                         expr_or_stmt)
 
         elif isinstance(expr_or_stmt, Grouping):
 
@@ -176,7 +177,13 @@ class Interpreter(ExprVisitor, StmtVisitor):
         elif isinstance(expr_or_stmt, Assign):
 
             value = self.evaluate(expr_or_stmt.value)
-            self._environment.assign(expr_or_stmt.name, value)
+            distance: int = self._locals.get(expr_or_stmt)
+            if distance is not None:
+                self._environment.assign_at(distance,
+                                            expr_or_stmt.name,
+                                            value)
+            else:
+                self._globals.assign(expr_or_stmt.name, value)
             return value
 
         elif isinstance(expr_or_stmt, Block):
@@ -276,3 +283,13 @@ class Interpreter(ExprVisitor, StmtVisitor):
         if isinstance(left, float) and isinstance(right, float): return
         raise PyloxRuntimeError("Operands must be numbers.",
                                 token=operator)
+
+    def look_up_variable(self: "Interpreter",
+                         name: Token,
+                         expr: Expr) -> Any:
+        distance: int = self._locals.get(expr)
+        if distance is not None:
+            return self._environment.get_at(distance,
+                                            name.lexeme)
+        else:
+            return self._globals.get(name)
