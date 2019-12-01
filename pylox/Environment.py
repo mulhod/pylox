@@ -1,4 +1,4 @@
-from typing import Any, MutableMapping, Optional
+from typing import Any, Dict, Optional
 
 from .PyloxRuntimeError import PyloxRuntimeError
 from .Token import Token
@@ -7,7 +7,7 @@ from .Token import Token
 class Environment:
 
     enclosing: "Environment"
-    values: MutableMapping[str, Any] = {}
+    values: Dict[str, Any] = {}
 
     def __init__(self: "Environment",
                  enclosing: Optional["Environment"] = None) -> None:

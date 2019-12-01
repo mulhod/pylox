@@ -1,4 +1,4 @@
-from typing import Union, Sequence, List
+from typing import Union, List
 
 import pylox
 from .Expr import (Assign, Binary, Call, Expr, Grouping, Literal, Logical,
@@ -133,7 +133,7 @@ class Resolver(ExprVisitor, StmtVisitor):
         expr_or_stmt.accept(self)
 
     def resolve_multi(self: "Resolver",
-                      expr_or_stmts: Sequence[Union[Stmt, Expr]]) -> None:
+                      expr_or_stmts: List[Union[Stmt, Expr]]) -> None:
         for expr_or_stmt in expr_or_stmts:
             self.resolve_single(expr_or_stmt)
 

@@ -1,5 +1,5 @@
 import time
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Union
 
 import pylox
 from .Environment import Environment
@@ -40,7 +40,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
         self._globals.define("clock", Clock)
 
     def interpret(self: "Interpreter",
-                  statements: Sequence[Stmt]) -> None:
+                  statements: List[Stmt]) -> None:
         try:
             for statement in statements:
                 self.execute(statement)
@@ -229,7 +229,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
         expr_or_stmt.accept(self)
 
     def execute_block(self: "Interpreter",
-                      statements: Sequence[Stmt],
+                      statements: List[Stmt],
                       environment: Environment) -> None:
         previous: Environment = self._environment
         try:

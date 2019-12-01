@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-from typing import Sequence
+from typing import List
 
 from .Interpreter import Interpreter
 from .Parser import Parser
@@ -20,7 +20,7 @@ class Lox:
     repl: bool = False
 
     @classmethod
-    def run(cls, args: Sequence[str]) -> None:
+    def run(cls, args: List[str]) -> None:
         if len(args) > 1:
             print("Usage: pylox [script]")
             sys.exit(64)
@@ -63,9 +63,9 @@ class Lox:
     @classmethod
     def run_from_string(cls, source: str) -> None:
         scanner: Scanner = Scanner(source)
-        tokens: Sequence[Token] = scanner.scan_tokens()
+        tokens: List[Token] = scanner.scan_tokens()
         parser: Parser = Parser(tokens)
-        statements: Sequence[Stmt] = parser.parse()
+        statements: List[Stmt] = parser.parse()
 
         # Stop if there was a syntax error.
         if cls.had_error: return

@@ -1,4 +1,4 @@
-from typing import Any, Sequence
+from typing import Any, List
 
 from . import Interpreter
 from .Environment import Environment
@@ -28,7 +28,7 @@ class LoxFunction(LoxCallable):
 
     def call(self: "LoxFunction",
              interpreter: Interpreter,
-             arguments: Sequence[Any]) -> None:
+             arguments: List[Any]) -> None:
 
         environment: Environment = Environment(self.closure)
         for i, param in enumerate(self.declaration.params):

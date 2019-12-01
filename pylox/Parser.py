@@ -1,4 +1,4 @@
-from typing import Sequence, MutableSequence, Union, Optional
+from typing import List, Optional, Union
 
 import pylox
 from .Expr import (Assign, Binary, Call, Expr, Grouping, Literal,
@@ -15,18 +15,18 @@ class ParseError(RuntimeError):
 
 class Parser:
 
-    tokens: Sequence[Token]
+    tokens: List[Token]
     current: int
 
-    def __init__(self: "Parser", tokens: Sequence[Token]) -> None:
+    def __init__(self: "Parser", tokens: List[Token]) -> None:
         self.current = 0
         self.tokens = tokens
 
     def __repr__(self: "Parser") -> str:
         return str(self.tokens)
 
-    def parse(self: "Parser") -> Sequence[Stmt]:
-        statements: MutableSequence[Stmt] = []
+    def parse(self: "Parser") -> List[Stmt]:
+        statements: List[Stmt] = []
         while not self.is_at_end():
             statements.append(self.declaration())
         return statements
@@ -143,7 +143,7 @@ class Parser:
                                    "Expect {} name.".format(kind))
         self.consume(TokenType.LEFT_PAREN,
                      "Expect '(' after {} name.".format(kind))
-        parameters: MutableSequence[Token] = []
+        parameters: List[Token] = []
         if not self.check(TokenType.RIGHT_PAREN):
             while True:
                 if len(parameters) >= 255:
@@ -157,11 +157,11 @@ class Parser:
 
         self.consume(TokenType.LEFT_BRACE,
                      "Expect '{' before " + kind + " body.")
-        body: Sequence[Stmt] = self.block()
+        body: List[Stmt] = self.block()
         return Function(name, parameters, body)
 
-    def block(self: "Parser") -> Sequence[Stmt]:
-        statements: MutableSequence[Stmt] = []
+    def block(self: "Parser") -> List[Stmt]:
+        statements: List[Stmt] = []
 
         while (not self.check(TokenType.RIGHT_BRACE) and
                not self.is_at_end()):
@@ -248,7 +248,7 @@ class Parser:
         return self.call()
 
     def finish_call(self: "Parser", callee: Expr) -> Expr:
-        arguments: MutableSequence[Union[Expr, Stmt]] = []
+        arguments: List[Union[Expr, Stmt]] = []
         if not self.check(TokenType.RIGHT_PAREN):
             while True:
                 if len(arguments) >= 255:

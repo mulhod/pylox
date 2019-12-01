@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, Callable, MutableSequence, Optional, Sequence, Tuple
+from typing import Any, Callable, List, Optional, Tuple
 
 from pylox import pylox_package_dir_path
 
@@ -16,7 +16,7 @@ class GenerateAst:
                                      ("right", "Expr")]),
                          ("Call", [("callee", "Expr"),
                                    ("paren", "Token"),
-                                   ("arguments", "Sequence[Expr]")]),
+                                   ("arguments", "List[Expr]")]),
                          ("Grouping", [("expression", "Expr")]),
                          ("Literal", [("value", "Any")]),
                          ("Logical", [("left", "Expr"),
@@ -26,13 +26,13 @@ class GenerateAst:
                                     ("right", "Expr")]),
                          ("Variable", [("name", "Token")])],
                          extra_imports=["from .Token import Token",
-                                        "from typing import Sequence"])
+                                        "from typing import List"])
         self.define_ast("Stmt",
-                        [("Block", [("statements", "Sequence[Stmt]")]),
+                        [("Block", [("statements", "List[Stmt]")]),
                          ("Expression", [("expression", "Union[Expr, Stmt]")]),
                          ("Function", [("name", "Token"),
-                                       ("params", "Sequence[Token]"),
-                                       ("body", "Sequence[Stmt]")]),
+                                       ("params", "List[Token]"),
+                                       ("body", "List[Stmt]")]),
                          ("If", [("condition", "Union[Expr, Stmt]",),
                                  ("then_branch", "Union[Expr, Stmt]"),
                                  ("else_branch", "Union[Expr, Stmt]")]),
@@ -43,14 +43,14 @@ class GenerateAst:
                                   ("initializer", "Union[Expr, Stmt]")]),
                          ("While", [("condition", "Union[Expr, Stmt]"),
                                     ("body", "Stmt")])],
-                        extra_imports=["from typing import Sequence, Union",
+                        extra_imports=["from typing import List, Union",
                                        "from .Token import Token",
                                        "from .Expr import Expr"])
 
     def define_ast(self: "GenerateAst",
                    base_class_name: str,
-                   classes_and_parameters: Sequence[Tuple[str, Sequence[Tuple[str, str]]]],
-                   extra_imports : Optional[Sequence[str]] = None) -> None:
+                   classes_and_parameters: List[Tuple[str, List[Tuple[str, str]]]],
+                   extra_imports : Optional[List[str]] = None) -> None:
 
         path: Path = pylox_package_dir_path / "{}.py".format(base_class_name)
         with path.open("w") as file_:
@@ -67,13 +67,13 @@ class GenerateAst:
                                   parameters)
 
     def add_imports(self: "GenerateAst",
-                    extra_imports : Optional[Sequence[str]] = None) -> None:
-        imports: MutableSequence[str] = ["from typing import Any, Optional\n\n"]
+                    extra_imports : Optional[List[str]] = None) -> None:
+        imports: List[str] = ["from typing import Any, Optional\n\n"]
         if extra_imports is not None:
             for extra_import in extra_imports:
                 imports.append("{}\n".format(extra_import))
             imports.append("\n")
-        imports_list: Sequence[str] = "".join(imports)
+        imports_list: str = "".join(imports)
         self.print(imports_list)
 
     def add_Visitor_class(self: "GenerateAst",
@@ -98,7 +98,7 @@ class GenerateAst:
     def add_subclass(self: "GenerateAst",
                      base_class_name: str,
                      sub_class_name: str,
-                     parameters: Sequence[Tuple[str, str]]) -> None:
+                     parameters: List[Tuple[str, str]]) -> None:
         self.print("\n"
                    "\n"
                    "class {}({}):"

@@ -1,7 +1,7 @@
 from typing import Any, Optional
 
 from .Token import Token
-from typing import Sequence
+from typing import List
 
 
 class Visitor:
@@ -51,9 +51,9 @@ class Call(Expr):
 
     callee: Expr
     paren: Token
-    arguments: Sequence[Expr]
+    arguments: List[Expr]
 
-    def __init__(self: "Call", callee: Expr, paren: Token, arguments: Sequence[Expr]) -> None:
+    def __init__(self: "Call", callee: Expr, paren: Token, arguments: List[Expr]) -> None:
         self.callee = callee
         self.paren = paren
         self.arguments = arguments

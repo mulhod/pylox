@@ -1,4 +1,4 @@
-from typing import Any, Mapping, MutableSequence, Optional
+from typing import Any, Dict, List, Optional
 
 import pylox
 from .Token import Token
@@ -8,12 +8,12 @@ from .TokenType import TokenType
 class Scanner:
 
     source: str
-    tokens: MutableSequence[Token]
+    tokens: List[Token]
     start: int
     current: int
     line_number: int
 
-    keywords: Mapping[str, TokenType] = \
+    keywords: Dict[str, TokenType] = \
         {"and":    TokenType.AND,
          "class":  TokenType.CLASS,
          "else":   TokenType.ELSE,
@@ -38,7 +38,7 @@ class Scanner:
         self.current = 0
         self.line_number = 1
 
-    def scan_tokens(self: "Scanner") -> MutableSequence[Token]:
+    def scan_tokens(self: "Scanner") -> List[Token]:
         while not self.is_at_end():
             # We are at the beginning of the next lexeme.
             self.start: int = self.current

@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from typing import Sequence, Union
+from typing import List, Union
 from .Token import Token
 from .Expr import Expr
 
@@ -22,9 +22,9 @@ class Stmt:
 
 class Block(Stmt):
 
-    statements: Sequence[Stmt]
+    statements: List[Stmt]
 
-    def __init__(self: "Block", statements: Sequence[Stmt]) -> None:
+    def __init__(self: "Block", statements: List[Stmt]) -> None:
         self.statements = statements
 
     def accept(self: "Block", visitor: Visitor) -> Optional[Any]:
@@ -45,10 +45,10 @@ class Expression(Stmt):
 class Function(Stmt):
 
     name: Token
-    params: Sequence[Token]
-    body: Sequence[Stmt]
+    params: List[Token]
+    body: List[Stmt]
 
-    def __init__(self: "Function", name: Token, params: Sequence[Token], body: Sequence[Stmt]) -> None:
+    def __init__(self: "Function", name: Token, params: List[Token], body: List[Stmt]) -> None:
         self.name = name
         self.params = params
         self.body = body
