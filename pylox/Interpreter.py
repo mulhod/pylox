@@ -3,31 +3,14 @@ from typing import Any, Dict, List, Optional, Union
 
 import pylox
 from .Environment import Environment
-from .Expr import (Assign, Binary, Call, Expr, Literal, Logical, Grouping,
-                   Unary, Variable, Visitor as ExprVisitor)
-from .LoxCallable import LoxCallable
-from .LoxFunction import LoxFunction
+from .ExprOrStmt import (Assign, Block, Binary, Call, Expr, ExprVisitor,
+                         Expression, Function, If, Literal, Logical, Grouping,
+                         Print, Return, Stmt, StmtVisitor, Unary, Variable,
+                         Var, While)
 from .PyloxRuntimeError import PyloxRuntimeError
 from .Return import Return as ReturnException
-from .Stmt import (Block, Expression, Function, If, Print, Return, Stmt, Var,
-                   Visitor as StmtVisitor, While)
 from .Token import Token
 from .TokenType import TokenType
-
-
-class Clock(LoxCallable):
-
-    def __init__(self):
-        super().__init__(self)
-        self.arity = 0
-
-    def call(self,
-             interpreter: "Interpreter",
-             arguments: List[Any]) -> float:
-        return time.time()/1000.0
-
-    def __str__(self) -> str:
-        return "<native fn>"
 
 
 class Interpreter(ExprVisitor, StmtVisitor):
@@ -40,10 +23,10 @@ class Interpreter(ExprVisitor, StmtVisitor):
         self._globals.define("clock", Clock)
 
     def interpret(self: "Interpreter",
-                  statements: List[Stmt]) -> None:
+                  exprs_or_stmts: List[Union[Expr, Stmt]]) -> None:
         try:
-            for statement in statements:
-                self.execute(statement)
+            for expr_or_stmt in exprs_or_stmts:
+                self.execute(expr_or_stmt)
         except PyloxRuntimeError as error:
             pylox.Lox.Lox.run_time_error(error)
 
@@ -76,7 +59,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr_or_stmt, Grouping):
 
-            return self.evaluate(expr_or_stmt.expression)
+            return self.evaluate(expr_or_stmt.expr_or_stmt)
 
         elif isinstance(expr_or_stmt, Binary):
 
@@ -123,8 +106,8 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
             callee: Any = self.evaluate(expr_or_stmt.callee)
 
-            arguments: List[Expr] = []
-            argument: Expr
+            arguments: List[Union[Expr, Stmt]] = []
+            argument: Union[Expr, Stmt]
             for i in range(len(expr_or_stmt.arguments)):
                 argument = expr_or_stmt.arguments[i]
                 arguments.append(self.evaluate(argument))
@@ -188,7 +171,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr_or_stmt, Block):
 
-            self.execute_block(expr_or_stmt.statements,
+            self.execute_block(expr_or_stmt.exprs_or_stmts,
                                Environment(self._environment))
             return None
 
@@ -229,13 +212,13 @@ class Interpreter(ExprVisitor, StmtVisitor):
         expr_or_stmt.accept(self)
 
     def execute_block(self: "Interpreter",
-                      statements: List[Stmt],
+                      exprs_or_stmts: List[Union[Expr, Stmt]],
                       environment: Environment) -> None:
         previous: Environment = self._environment
         try:
             self._environment = environment
-            for statement in statements:
-                self.execute(statement)
+            for expr_or_stmt in exprs_or_stmts:
+                self.execute(expr_or_stmt)
         finally:
             self._environment = previous
 
@@ -293,3 +276,68 @@ class Interpreter(ExprVisitor, StmtVisitor):
                                             name.lexeme)
         else:
             return self._globals.get(name)
+
+
+class LoxCallable:
+
+    callee: Any
+    arity: int
+
+    def __init__(self: "LoxCallable", callee: Any) -> None:
+        self.callee = callee
+
+    def call(self: "LoxCallable",
+             interpreter: Interpreter,
+             arguments: List[Any]) -> Any:
+        raise NotImplementedError()
+
+
+class Clock(LoxCallable):
+
+    def __init__(self):
+        super().__init__(self)
+        self.arity = 0
+
+    def call(self,
+             interpreter: "Interpreter",
+             arguments: List[Any]) -> float:
+        return time.time()/1000.0
+
+    def __str__(self) -> str:
+        return "<native fn>"
+
+
+class LoxFunction(LoxCallable):
+
+    declaration: Function
+    closure: Environment
+
+    def __init__(self: "LoxFunction",
+                 declaration: Function,
+                 closure: Environment) -> None:
+        super().__init__(self)
+        self.closure = closure
+        self.declaration = declaration
+        self.arity = len(self.declaration.params)
+
+    def __str__(self: "LoxFunction") -> str:
+        return "<fn {}>".format(self.declaration.name.lexeme)
+
+    def __repr__(self: "LoxFunction") -> str:
+        return str(self)
+
+    def call(self: "LoxFunction",
+             interpreter: Interpreter,
+             arguments: List[Any]) -> None:
+
+        environment: Environment = Environment(self.closure)
+        for i, param in enumerate(self.declaration.params):
+            environment.define(param.lexeme,
+                               arguments[i])
+
+        try:
+            interpreter.execute_block(self.declaration.body,
+                                      environment)
+        except ReturnException as return_value:
+            return return_value.value
+        return None

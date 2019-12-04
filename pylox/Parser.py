@@ -1,10 +1,9 @@
 from typing import List, Optional, Union
 
 import pylox
-from .Expr import (Assign, Binary, Call, Expr, Grouping, Literal,
-                   Logical, Unary, Variable)
-from .Stmt import (Block, Expression, Function, If, Print, Return, Stmt, Var,
-                   While)
+from .ExprOrStmt import (Assign, Binary, Block, Call, Expr, Expression,
+                         Grouping, Function, If, Literal, Logical, Print,
+                         Return, Stmt, Var, While, Unary, Variable)
 from .Token import Token
 from .TokenType import TokenType
 
@@ -25,11 +24,11 @@ class Parser:
     def __repr__(self: "Parser") -> str:
         return str(self.tokens)
 
-    def parse(self: "Parser") -> List[Stmt]:
-        statements: List[Stmt] = []
+    def parse(self: "Parser") -> List[Union[Expr, Stmt]]:
+        exprs_or_stmts: List[Union[Expr, Stmt]] = []
         while not self.is_at_end():
-            statements.append(self.declaration())
-        return statements
+            exprs_or_stmts.append(self.declaration())
+        return exprs_or_stmts
 
     def expression(self: "Parser") -> Union[Expr, Stmt]:
         return self.assignment()
@@ -133,10 +132,10 @@ class Parser:
         return While(condition, body)
 
     def expression_statement(self: "Parser") -> Stmt:
-        expr: Union[Expr, Stmt] = self.expression()
+        expr_or_stmt: Union[Expr, Stmt] = self.expression()
         self.consume(TokenType.SEMICOLON,
                      "Expect ';' after expression.")
-        return Expression(expr)
+        return Expression(expr_or_stmt)
 
     def function(self: "Parser", kind: str) -> Function:
         name: Token = self.consume(TokenType.IDENTIFIER,
@@ -157,18 +156,18 @@ class Parser:
 
         self.consume(TokenType.LEFT_BRACE,
                      "Expect '{' before " + kind + " body.")
-        body: List[Stmt] = self.block()
+        body: List[Union[Expr, Stmt]] = self.block()
         return Function(name, parameters, body)
 
-    def block(self: "Parser") -> List[Stmt]:
-        statements: List[Stmt] = []
+    def block(self: "Parser") -> List[Union[Expr, Stmt]]:
+        exprs_or_stmts: List[Union[Expr, Stmt]] = []
 
         while (not self.check(TokenType.RIGHT_BRACE) and
                not self.is_at_end()):
-            statements.append(self.declaration())
+            exprs_or_stmts.append(self.declaration())
 
         self.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
-        return statements
+        return exprs_or_stmts
 
     def assignment(self: "Parser") -> Expr:
         expr: Expr = self.or_()

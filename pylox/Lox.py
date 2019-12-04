@@ -1,13 +1,13 @@
 import sys
 from pathlib import Path
-from typing import List
+from typing import List, Union
 
 from .Interpreter import Interpreter
 from .Parser import Parser
 from .PyloxRuntimeError import PyloxRuntimeError
 from .Resolver import Resolver
 from .Scanner import Scanner
-from .Stmt import Stmt
+from .ExprOrStmt import Expr, Stmt
 from .Token import Token
 from .TokenType import TokenType
 
@@ -65,14 +65,14 @@ class Lox:
         scanner: Scanner = Scanner(source)
         tokens: List[Token] = scanner.scan_tokens()
         parser: Parser = Parser(tokens)
-        statements: List[Stmt] = parser.parse()
+        exprs_or_stmts: List[Union[Expr, Stmt]] = parser.parse()
 
         # Stop if there was a syntax error.
         if cls.had_error: return
 
         resolver: Resolver = Resolver(cls.interpreter)
-        resolver.resolve_multi(statements)
-        cls.interpreter.interpret(statements)
+        resolver.resolve_multi(exprs_or_stmts)
+        cls.interpreter.interpret(exprs_or_stmts)
 
     @classmethod
     def error(cls,

@@ -1,11 +1,11 @@
 from typing import Union, List
 
 import pylox
-from .Expr import (Assign, Binary, Call, Expr, Grouping, Literal, Logical,
-                   Variable, Visitor as ExprVisitor)
+from .ExprOrStmt import (Assign, Binary, Block, Call, Expr, Expression,
+                         ExprVisitor, Function, Grouping, If, Literal,
+                         Logical, Print, Return, Stmt, StmtVisitor, Variable,
+                         Var, While)
 from .Interpreter import Interpreter
-from .Stmt import (Block, Expression, Function, If, Print, Return, Stmt, Var,
-                   Visitor as StmtVisitor, While)
 from .Token import Token
 
 
@@ -43,7 +43,7 @@ class Resolver(ExprVisitor, StmtVisitor):
         if isinstance(expr_or_stmt, Block):
 
             self.begin_scope()
-            self.resolve_multi(expr_or_stmt.statements)
+            self.resolve_multi(expr_or_stmt.exprs_or_stmts)
             self.end_scope()
 
         elif isinstance(expr_or_stmt, Expression):
@@ -105,13 +105,13 @@ class Resolver(ExprVisitor, StmtVisitor):
         elif isinstance(expr_or_stmt, Call):
 
             self.resolve_single(expr_or_stmt.callee)
-            argument: Expr
+            argument: Union[Expr, Stmt]
             for argument in expr_or_stmt.arguments:
                 self.resolve_single(argument)
 
         elif isinstance(expr_or_stmt, Grouping):
 
-            self.resolve_single(expr_or_stmt.expression)
+            self.resolve_single(expr_or_stmt.expr_or_stmt)
 
         elif isinstance(expr_or_stmt, Literal):
 
