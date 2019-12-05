@@ -9,7 +9,7 @@ from pylox import Token
 from pylox import TokenType
 from pylox import Scanner
 from pylox import AstPrinter
-from pylox.Expr import Binary, Unary, Literal, Grouping
+from pylox.ExprOrStmt import Binary, Unary, Literal, Grouping
 
 test_data_dir_path = Path(__file__).absolute().parent / "test_data"
 
