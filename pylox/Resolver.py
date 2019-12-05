@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Union, List
 
 import pylox
@@ -29,14 +30,21 @@ class ScopeDict(dict):
             dict.__setitem__(self, key, val)
 
 
+class FunctionType(Enum):
+    NONE = 1
+    FUNCTION = 2
+
+
 class Resolver(ExprVisitor, StmtVisitor):
 
-    interpreter: Interpreter
-    scopes: List[ScopeDict]
+    _interpreter: Interpreter
+    _scopes: List[ScopeDict]
+    _current_function: FunctionType
 
     def __init__(self: "Resolver", interpreter: Interpreter) -> None:
-        self.interpreter = interpreter
-        self.scopes = []
+        self._interpreter = interpreter
+        self._scopes = []
+        self._current_function = FunctionType.NONE
 
     def visit(self: "Resolver", expr_or_stmt: Union[Expr, Stmt]) -> None:
 
@@ -54,7 +62,7 @@ class Resolver(ExprVisitor, StmtVisitor):
 
             self.declare(expr_or_stmt.name)
             self.define(expr_or_stmt.name)
-            self.resolve_function(expr_or_stmt)
+            self.resolve_function(expr_or_stmt, FunctionType.FUNCTION)
 
         elif isinstance(expr_or_stmt, If):
 
@@ -68,6 +76,10 @@ class Resolver(ExprVisitor, StmtVisitor):
             self.resolve_single(expr_or_stmt.expression)
 
         elif isinstance(expr_or_stmt, Return):
+
+            if self._current_function == FunctionType.NONE:
+                pylox.Lox.Lox.token_error(expr_or_stmt.keyword,
+                                          "Cannot return from top-level code.")
 
             if expr_or_stmt.value is not None:
                 self.resolve_single(expr_or_stmt.value)
@@ -86,7 +98,8 @@ class Resolver(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr_or_stmt, Variable):
 
-            if self.scopes and self.scopes[-1].get(expr_or_stmt.name.lexeme) == False:
+            if (self._scopes and
+                self._scopes[-1].get(expr_or_stmt.name.lexeme) == False):
                 pylox.Lox.Lox.token_error(expr_or_stmt.name,
                                           "Cannot read local variable in its "
                                           "own initializer.")
@@ -137,8 +150,12 @@ class Resolver(ExprVisitor, StmtVisitor):
         for expr_or_stmt in expr_or_stmts:
             self.resolve_single(expr_or_stmt)
 
-    def resolve_function(self: "Resolver", function: Function) -> None:
+    def resolve_function(self: "Resolver",
+                         function: Function,
+                         type_: FunctionType) -> None:
 
+        enclosing_function: FunctionType = self._current_function
+        self._current_function: FunctionType = type_
         self.begin_scope()
         param: Token
         for param in function.params:
@@ -146,18 +163,19 @@ class Resolver(ExprVisitor, StmtVisitor):
             self.define(param)
         self.resolve_multi(function.body)
         self.end_scope()
+        self._current_function = enclosing_function
 
     def begin_scope(self: "Resolver") -> None:
-        self.scopes.append(ScopeDict())
+        self._scopes.append(ScopeDict())
         return
 
     def end_scope(self: "Resolver") -> None:
-        self.scopes.pop()
+        self._scopes.pop()
         return
 
     def declare(self: "Resolver", name: Token) -> None:
-        if not self.scopes: return
-        scope: ScopeDict = self.scopes[-1]
+        if not self._scopes: return
+        scope: ScopeDict = self._scopes[-1]
         if name.lexeme in scope:
             pylox.Lox.Lox.token_error(name,
                                       "Variable with this name already "
@@ -165,15 +183,15 @@ class Resolver(ExprVisitor, StmtVisitor):
         scope[name.lexeme] = False
 
     def define(self: "Resolver", name: Token) -> None:
-        if not self.scopes: return
-        scope: ScopeDict = self.scopes[-1]
+        if not self._scopes: return
+        scope: ScopeDict = self._scopes[-1]
         scope[name.lexeme] = True
 
     def resolve_local(self: "Resolver", expr: Expr, name: Token) -> None:
-        max_scope_i: int = len(self.scopes) - 1
+        max_scope_i: int = len(self._scopes) - 1
         i: int = int(max_scope_i)
         while i >= 0:
-            if name.lexeme in self.scopes[i]:
-                self.interpreter.resolve(expr, max_scope_i - i)
+            if name.lexeme in self._scopes[i]:
+                self._interpreter.resolve(expr, max_scope_i - i)
                 return
             i -= 1

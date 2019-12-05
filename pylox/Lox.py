@@ -72,6 +72,10 @@ class Lox:
 
         resolver: Resolver = Resolver(cls.interpreter)
         resolver.resolve_multi(exprs_or_stmts)
+
+        # Stop if there was a resolution error.
+        if cls.had_error: return
+
         cls.interpreter.interpret(exprs_or_stmts)
 
     @classmethod
