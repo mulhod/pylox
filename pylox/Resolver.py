@@ -158,6 +158,10 @@ class Resolver(ExprVisitor, StmtVisitor):
     def declare(self: "Resolver", name: Token) -> None:
         if not self.scopes: return
         scope: ScopeDict = self.scopes[-1]
+        if name.lexeme in scope:
+            pylox.Lox.Lox.token_error(name,
+                                      "Variable with this name already "
+                                      "declared in this scope.")
         scope[name.lexeme] = False
 
     def define(self: "Resolver", name: Token) -> None:
