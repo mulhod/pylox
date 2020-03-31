@@ -1,9 +1,10 @@
 from typing import List, Optional, Union
 
 import pylox
-from .ExprOrStmt import (Assign, Binary, Block, Call, Expr, Expression,
-                         Grouping, Function, If, Literal, Logical, Print,
-                         Return, Stmt, Var, While, Unary, Variable)
+from .ExprOrStmt import (Assign, Binary, Block, Call, Class, Expr,
+                         Expression, Grouping, Function, If, Literal,
+                         Logical, Print, Return, Stmt, Var, While, Unary,
+                         Variable)
 from .Token import Token
 from .TokenType import TokenType
 
@@ -35,6 +36,7 @@ class Parser:
 
     def declaration(self: "Parser") -> Optional[Stmt]:
         try:
+            if self.match(TokenType.CLASS): return self.class_declaration()
             if self.match(TokenType.FUN): return self.function("function")
             if self.match(TokenType.VAR): return self.var_declaration()
             return self.statement()
@@ -111,6 +113,21 @@ class Parser:
         self.consume(TokenType.SEMICOLON,
                      "Expect ';' after return value.")
         return Return(keyword, value)
+
+    def class_declaration(self) -> Stmt:
+        name: Token = self.consume(TokenType.IDENTIFIER,
+                                   "Expect class name.")
+        self.consume(TokenType.LEFT_BRACE,
+                     "Expect '{' before class body.")
+
+        methods: List[Function] = []
+        while not self.check(TokenType.RIGHT_BRACE) and not self.is_at_end():
+            methods.append(self.function("method"))
+
+        self.consume(TokenType.RIGHT_BRACE,
+                     "Expect '}' after class body.")
+
+        return Class(name, methods)
 
     def var_declaration(self: "Parser") -> Stmt:
         name: Token = self.consume(TokenType.IDENTIFIER,

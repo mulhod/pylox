@@ -29,6 +29,8 @@ class GenerateAst:
                           ("Variable", [("name", "Token")])],
                          [("Block", [("exprs_or_stmts", "List[Union[Expr, Stmt]]")]),
                           ("Expression", [("expression", "Union[Expr, Stmt]")]),
+                          ("Class", [("name", "Token"),
+                                     ("methods", "List[\"Function\"]")]),
                           ("Function", [("name", "Token"),
                                         ("params", "List[Token]"),
                                         ("body", "List[Union[Expr, Stmt]]")]),

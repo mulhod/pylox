@@ -3,10 +3,11 @@ from typing import Any, Dict, List, Optional, Union
 
 import pylox
 from .Environment import Environment
-from .ExprOrStmt import (Assign, Block, Binary, Call, Expr, ExprVisitor,
-                         Expression, Function, If, Literal, Logical, Grouping,
-                         Print, Return, Stmt, StmtVisitor, Unary, Variable,
-                         Var, While)
+from .ExprOrStmt import (Assign, Block, Binary, Call, Class, Expr,
+                         ExprVisitor, Expression, Function, If, Literal,
+                         Logical, Grouping, Print, Return, Stmt, StmtVisitor,
+                         Unary, Variable, Var, While)
+from .LoxClass import LoxClass
 from .PyloxRuntimeError import PyloxRuntimeError
 from .Return import Return as ReturnException
 from .Token import Token
@@ -173,6 +174,13 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
             self.execute_block(expr_or_stmt.exprs_or_stmts,
                                Environment(self._environment))
+            return None
+
+        elif isinstance(expr_or_stmt, Class):
+
+            self._environment.define(expr_or_stmt.name.lexeme, None)
+            klass: LoxClass = LoxClass(expr_or_stmt.name.lexeme)
+            self._environment.assign(expr_or_stmt.name, klass)
             return None
 
         elif isinstance(expr_or_stmt, If):

@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Union, List
 
 import pylox
-from .ExprOrStmt import (Assign, Binary, Block, Call, Expr, Expression,
+from .ExprOrStmt import (Assign, Binary, Block, Call, Class, Expr, Expression,
                          ExprVisitor, Function, Grouping, If, Literal,
                          Logical, Print, Return, Stmt, StmtVisitor, Variable,
                          Var, While)
@@ -53,6 +53,11 @@ class Resolver(ExprVisitor, StmtVisitor):
             self.begin_scope()
             self.resolve_multi(expr_or_stmt.exprs_or_stmts)
             self.end_scope()
+
+        elif isinstance(expr_or_stmt, Class):
+
+            self.declare(expr_or_stmt.name)
+            self.define(expr_or_stmt.name)
 
         elif isinstance(expr_or_stmt, Expression):
 

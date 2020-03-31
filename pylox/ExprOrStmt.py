@@ -162,6 +162,19 @@ class Expression(Stmt):
         return visitor.visit(self)
 
 
+class Class(Stmt):
+
+    name: Token
+    methods: List["Function"]
+
+    def __init__(self: "Class", name: Token, methods: List["Function"]) -> None:
+        self.name = name
+        self.methods = methods
+
+    def accept(self: "Class", visitor: StmtVisitor) -> Optional[Any]:
+        return visitor.visit(self)
+
+
 class Function(Stmt):
 
     name: Token
