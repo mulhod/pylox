@@ -7,7 +7,6 @@ from .ExprOrStmt import (Assign, Block, Binary, Call, Class, Expr,
                          ExprVisitor, Expression, Function, If, Literal,
                          Logical, Grouping, Print, Return, Stmt, StmtVisitor,
                          Unary, Variable, Var, While)
-from .LoxClass import LoxClass
 from .PyloxRuntimeError import PyloxRuntimeError
 from .Return import Return as ReturnException
 from .Token import Token
@@ -349,3 +348,34 @@ class LoxFunction(LoxCallable):
         except ReturnException as return_value:
             return return_value.value
         return None
+
+
+class LoxClass(LoxCallable):
+
+    name: str
+    arity: int
+
+    def __init__(self: "LoxClass", name: str):
+        super().__init__(self)
+        self.name = name
+        self.arity = 0
+
+    def __str__(self) -> str:
+        return self.name
+
+    def call(self,
+             interpreter: Interpreter,
+             arguments: List[Any]) -> "LoxInstance":
+        instance: LoxInstance = LoxInstance(self)
+        return instance
+
+
+class LoxInstance:
+
+    klass: LoxClass
+
+    def __init__(self, klass: LoxClass):
+        self.klass = klass
+
+    def __str__(self) -> str:
+        return self.klass.name + " instance"
