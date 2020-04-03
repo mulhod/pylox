@@ -19,6 +19,8 @@ class GenerateAst:
                           ("Call", [("callee", "Expr"),
                                     ("paren", "Token"),
                                     ("arguments", "List[Union[Expr, \"Stmt\"]]")]),
+                          ("Get", [("object", "Expr"),
+                                   ("name", "Token")]),
                           ("Grouping", [("expr_or_stmt", "Union[Expr, \"Stmt\"]")]),
                           ("Literal", [("value", "Any")]),
                           ("Logical", [("left", "Expr"),

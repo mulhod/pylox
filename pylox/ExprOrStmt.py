@@ -64,6 +64,19 @@ class Call(Expr):
         return visitor.visit(self)
 
 
+class Get(Expr):
+
+    object: Expr
+    name: Token
+
+    def __init__(self: "Get", object: Expr, name: Token) -> None:
+        self.object = object
+        self.name = name
+
+    def accept(self: "Get", visitor: ExprVisitor) -> Optional[Any]:
+        return visitor.visit(self)
+
+
 class Grouping(Expr):
 
     expr_or_stmt: Union[Expr, "Stmt"]

@@ -2,7 +2,7 @@ from typing import List, Optional, Union
 
 import pylox
 from .ExprOrStmt import (Assign, Binary, Block, Call, Class, Expr,
-                         Expression, Grouping, Function, If, Literal,
+                         Expression, Get, Grouping, Function, If, Literal,
                          Logical, Print, Return, Stmt, Var, While, Unary,
                          Variable)
 from .Token import Token
@@ -283,6 +283,10 @@ class Parser:
         while True:
             if self.match(TokenType.LEFT_PAREN):
                 expr = self.finish_call(expr)
+            elif self.match(TokenType.DOT):
+                name: Token = self.consume(TokenType.IDENTIFIER,
+                                           "Expect property name after '.'.")
+                expr = Get(expr, name)
             else:
                 break
         return expr

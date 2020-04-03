@@ -3,7 +3,7 @@ from typing import Union, List
 
 import pylox
 from .ExprOrStmt import (Assign, Binary, Block, Call, Class, Expr, Expression,
-                         ExprVisitor, Function, Grouping, If, Literal,
+                         ExprVisitor, Function, Get, Grouping, If, Literal,
                          Logical, Print, Return, Stmt, StmtVisitor, Variable,
                          Var, While)
 from .Interpreter import Interpreter
@@ -126,6 +126,10 @@ class Resolver(ExprVisitor, StmtVisitor):
             argument: Union[Expr, Stmt]
             for argument in expr_or_stmt.arguments:
                 self.resolve_single(argument)
+
+        elif isinstance(expr_or_stmt, Get):
+
+            self.resolve_single(expr_or_stmt.object)
 
         elif isinstance(expr_or_stmt, Grouping):
 

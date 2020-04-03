@@ -5,8 +5,8 @@ import pylox
 from .Environment import Environment
 from .ExprOrStmt import (Assign, Block, Binary, Call, Class, Expr,
                          ExprVisitor, Expression, Function, If, Literal,
-                         Logical, Grouping, Print, Return, Stmt, StmtVisitor,
-                         Unary, Variable, Var, While)
+                         Logical, Get, Grouping, Print, Return, Stmt,
+                         StmtVisitor, Unary, Variable, Var, While)
 from .PyloxRuntimeError import PyloxRuntimeError
 from .Return import Return as ReturnException
 from .Token import Token
@@ -123,6 +123,14 @@ class Interpreter(ExprVisitor, StmtVisitor):
                                                 len(arguments)),
                                         expr_or_stmt.paren)
             return func.call(self, arguments)
+
+        elif isinstance(expr_or_stmt, Get):
+
+            object_: Any = self.evaluate(expr_or_stmt.object)
+            if isinstance(object_, LoxInstance):
+                return object_.get(expr_or_stmt.name)
+            raise PyloxRuntimeError("Only instances have properties.",
+                                    expr_or_stmt.name)
 
         elif isinstance(expr_or_stmt, Expression):
 
@@ -373,9 +381,17 @@ class LoxClass(LoxCallable):
 class LoxInstance:
 
     klass: LoxClass
+    fields: Dict[str, Any] = {}
 
     def __init__(self, klass: LoxClass):
         self.klass = klass
+
+    def get(self, name: Token) -> Any:
+        if name.lexeme in self.fields:
+            return self.fields[name.lexeme]
+        raise PyloxRuntimeError("Undefined property '{}'."
+                                .format(name.lexeme),
+                                name)
 
     def __str__(self) -> str:
         return self.klass.name + " instance"
