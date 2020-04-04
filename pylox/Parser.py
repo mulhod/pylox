@@ -1,10 +1,9 @@
 from typing import List, Optional, Union
 
 import pylox
-from .ExprOrStmt import (Assign, Binary, Block, Call, Class, Expr,
-                         Expression, Get, Grouping, Function, If, Literal,
-                         Logical, Print, Return, Stmt, Var, While, Unary,
-                         Variable)
+from .ExprOrStmt import (Assign, Binary, Block, Call, Class, Expr, Expression,
+                         Get, Grouping, Function, If, Literal, Logical, Print,
+                         Return, Set, Stmt, Var, While, Unary, Variable)
 from .Token import Token
 from .TokenType import TokenType
 
@@ -196,6 +195,9 @@ class Parser:
             if isinstance(expr, Variable):
                 name: Token = expr.name
                 return Assign(name, value)
+            elif isinstance(expr, Get):
+                get: Get = expr
+                return Set(get.object, get.name, value)
 
             self.error(equals, "Invalid assignment target.")
 

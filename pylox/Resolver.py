@@ -4,8 +4,8 @@ from typing import Union, List
 import pylox
 from .ExprOrStmt import (Assign, Binary, Block, Call, Class, Expr, Expression,
                          ExprVisitor, Function, Get, Grouping, If, Literal,
-                         Logical, Print, Return, Stmt, StmtVisitor, Variable,
-                         Var, While)
+                         Logical, Print, Return, Set, Stmt, StmtVisitor,
+                         Variable, Var, While)
 from .Interpreter import Interpreter
 from .Token import Token
 
@@ -147,6 +147,11 @@ class Resolver(ExprVisitor, StmtVisitor):
         elif isinstance(expr_or_stmt, Logical):
 
             self.resolve_single(expr_or_stmt.right)
+
+        elif isinstance(expr_or_stmt, Set):
+
+            self.resolve_single(expr_or_stmt.value)
+            self.resolve_single(expr_or_stmt.object)
 
         return None
 

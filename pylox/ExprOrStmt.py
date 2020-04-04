@@ -114,6 +114,21 @@ class Logical(Expr):
         return visitor.visit(self)
 
 
+class Set(Expr):
+
+    object: Expr
+    name: Token
+    value: Expr
+
+    def __init__(self: "Set", object: Expr, name: Token, value: Expr) -> None:
+        self.object = object
+        self.name = name
+        self.value = value
+
+    def accept(self: "Set", visitor: ExprVisitor) -> Optional[Any]:
+        return visitor.visit(self)
+
+
 class Unary(Expr):
 
     operator: Token
