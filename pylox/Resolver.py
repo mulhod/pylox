@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import auto, Enum
 from typing import Union, List
 
 import pylox
@@ -16,10 +16,10 @@ class ScopeDict(dict):
     of type ``bool``.
     """
 
-    def __init__(self: "ScopeDict", *args, **kwargs) -> None:
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def __setitem__(self: "ScopeDict", key: str, val: bool) -> None:
+    def __setitem__(self, key: str, val: bool) -> None:
         if not isinstance(key, str):
             raise ValueError("{} is not of type {}!"
                              .format(key, str))
@@ -31,8 +31,9 @@ class ScopeDict(dict):
 
 
 class FunctionType(Enum):
-    NONE = 1
-    FUNCTION = 2
+    NONE = auto()
+    FUNCTION = auto()
+    METHOD = auto()
 
 
 class Resolver(ExprVisitor, StmtVisitor):
@@ -41,12 +42,12 @@ class Resolver(ExprVisitor, StmtVisitor):
     _scopes: List[ScopeDict]
     _current_function: FunctionType
 
-    def __init__(self: "Resolver", interpreter: Interpreter) -> None:
+    def __init__(self, interpreter: Interpreter):
         self._interpreter = interpreter
         self._scopes = []
         self._current_function = FunctionType.NONE
 
-    def visit(self: "Resolver", expr_or_stmt: Union[Expr, Stmt]) -> None:
+    def visit(self, expr_or_stmt: Union[Expr, Stmt]) -> None:
 
         if isinstance(expr_or_stmt, Block):
 
@@ -58,6 +59,10 @@ class Resolver(ExprVisitor, StmtVisitor):
 
             self.declare(expr_or_stmt.name)
             self.define(expr_or_stmt.name)
+            method: Function
+            for method in expr_or_stmt.methods:
+                declaration: FunctionType = FunctionType.METHOD
+                self.resolve_function(method, declaration)
 
         elif isinstance(expr_or_stmt, Expression):
 
@@ -155,16 +160,15 @@ class Resolver(ExprVisitor, StmtVisitor):
 
         return None
 
-    def resolve_single(self: "Resolver",
-                       expr_or_stmt: Union[Expr, Stmt]) -> None:
+    def resolve_single(self, expr_or_stmt: Union[Expr, Stmt]) -> None:
         expr_or_stmt.accept(self)
 
-    def resolve_multi(self: "Resolver",
+    def resolve_multi(self,
                       expr_or_stmts: List[Union[Stmt, Expr]]) -> None:
         for expr_or_stmt in expr_or_stmts:
             self.resolve_single(expr_or_stmt)
 
-    def resolve_function(self: "Resolver",
+    def resolve_function(self,
                          function: Function,
                          type_: FunctionType) -> None:
 
@@ -179,15 +183,15 @@ class Resolver(ExprVisitor, StmtVisitor):
         self.end_scope()
         self._current_function = enclosing_function
 
-    def begin_scope(self: "Resolver") -> None:
+    def begin_scope(self) -> None:
         self._scopes.append(ScopeDict())
         return
 
-    def end_scope(self: "Resolver") -> None:
+    def end_scope(self) -> None:
         self._scopes.pop()
         return
 
-    def declare(self: "Resolver", name: Token) -> None:
+    def declare(self, name: Token) -> None:
         if not self._scopes: return
         scope: ScopeDict = self._scopes[-1]
         if name.lexeme in scope:
@@ -196,12 +200,12 @@ class Resolver(ExprVisitor, StmtVisitor):
                                       "declared in this scope.")
         scope[name.lexeme] = False
 
-    def define(self: "Resolver", name: Token) -> None:
+    def define(self, name: Token) -> None:
         if not self._scopes: return
         scope: ScopeDict = self._scopes[-1]
         scope[name.lexeme] = True
 
-    def resolve_local(self: "Resolver", expr: Expr, name: Token) -> None:
+    def resolve_local(self, expr: Expr, name: Token) -> None:
         max_scope_i: int = len(self._scopes) - 1
         i: int = int(max_scope_i)
         while i >= 0:

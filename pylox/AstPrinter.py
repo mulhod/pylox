@@ -8,7 +8,7 @@ from .TokenType import TokenType
 
 class AstPrinter(ExprVisitor, StmtVisitor):
 
-    def to_string(self: "AstPrinter",
+    def to_string(self,
                   expr_or_stmt: Union[Expr, Stmt]) -> str:
         return expr_or_stmt.accept(self)
 
@@ -25,25 +25,21 @@ class AstPrinter(ExprVisitor, StmtVisitor):
             raise RuntimeError("Unexpected Expr sub-class: {}"
                                .format(expr_or_stmt.__class__.__name__))
 
-    def visit_binary_expr(self: "AstPrinter",
-                          expr: Binary) -> str:
+    def visit_binary_expr(self, expr: Binary) -> str:
         return self.parenthesize(expr.operator.lexeme,
                                  [expr.left, expr.right])
 
-    def visit_grouping_expr(self: "AstPrinter",
-                            expr: Grouping) -> str:
+    def visit_grouping_expr(self, expr: Grouping) -> str:
         return self.parenthesize("group", [expr.expr_or_stmt])
 
-    def visit_literal_expr(self: "AstPrinter",
-                           expr: Literal) -> str:
+    def visit_literal_expr(self, expr: Literal) -> str:
         if expr.value is None: return "nil"
         return str(expr.value)
 
-    def visit_unary_expr(self: "AstPrinter",
-                         expr: Unary) -> str:
+    def visit_unary_expr(self, expr: Unary) -> str:
         return self.parenthesize(expr.operator.lexeme, [expr.right])
 
-    def parenthesize(self: "AstPrinter",
+    def parenthesize(self,
                      name: str,
                      expr_or_stmts: Sequence[Union[Expr, Stmt]]) -> str:
         builder: str = ""

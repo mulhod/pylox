@@ -31,14 +31,14 @@ class Scanner:
          "var":    TokenType.VAR,
          "while":  TokenType.WHILE}
 
-    def __init__(self: "Scanner", source: str) -> None:
+    def __init__(self, source: str):
         self.source = source
         self.tokens = []
         self.start = 0
         self.current = 0
         self.line_number = 1
 
-    def scan_tokens(self: "Scanner") -> List[Token]:
+    def scan_tokens(self) -> List[Token]:
         while not self.is_at_end():
             # We are at the beginning of the next lexeme.
             self.start: int = self.current
@@ -47,7 +47,7 @@ class Scanner:
         self.tokens.append(Token(TokenType.EOF, "", None, self.line_number))
         return self.tokens
 
-    def scan_token(self: "Scanner") -> None:
+    def scan_token(self) -> None:
         c: str = self.advance()
         if c == "(":
             self.add_token(TokenType.LEFT_PAREN)
@@ -142,7 +142,7 @@ class Scanner:
             else:
                 pylox.Lox.Lox.error(self.line_number, "Unexpected character.")
 
-    def identifier(self: "Scanner") -> None:
+    def identifier(self) -> None:
         while self.is_alphanumeric(self.peek()): self.advance()
 
         # See if the identifier is a reserved word.
@@ -153,7 +153,7 @@ class Scanner:
             token_type = TokenType.IDENTIFIER
         self.add_token(token_type)
 
-    def number(self: "Scanner") -> None:
+    def number(self) -> None:
         while self.is_digit(self.peek()): self.advance()
 
         # Look for a fractional part.
@@ -167,7 +167,7 @@ class Scanner:
         self.add_token_with_literal(TokenType.NUMBER,
                                     float(self.source[self.start:self.current]))
 
-    def string(self: "Scanner") -> None:
+    def string(self) -> None:
         while self.peek() != "\"" and not self.is_at_end():
             if self.peek() == "\n": self.line_number += 1
             self.advance()
@@ -184,18 +184,18 @@ class Scanner:
         value: str = self.source[self.start + 1:self.current - 1]
         self.add_token_with_literal(TokenType.STRING, value)
 
-    def match(self: "Scanner", expected: str) -> bool:
+    def match(self, expected: str) -> bool:
         if self.is_at_end(): return False
         if self.source[self.current] != expected: return False
 
         self.current += 1
         return True
 
-    def peek(self: "Scanner") -> str:
+    def peek(self) -> str:
         if self.is_at_end(): return "\0"
         return self.source[self.current]
 
-    def peek_next(self: "Scanner") -> str:
+    def peek_next(self) -> str:
         if self.current + 1 >= len(self.source): return "\0"
         return self.source[self.current + 1]
 
@@ -210,17 +210,17 @@ class Scanner:
     def is_digit(c: str) -> bool:
         return "0" <= c <= "9"
 
-    def is_at_end(self: "Scanner") -> bool:
+    def is_at_end(self) -> bool:
         return self.current >= len(self.source)
 
-    def advance(self: "Scanner") -> str:
+    def advance(self) -> str:
         self.current += 1
         return self.source[self.current - 1]
 
-    def add_token(self: "Scanner", token_type: TokenType) -> None:
+    def add_token(self, token_type: TokenType) -> None:
         self.add_token_with_literal(token_type, None)
 
-    def add_token_with_literal(self: "Scanner",
+    def add_token_with_literal(self,
                                token_type: TokenType,
                                literal: Optional[Any]):
         text: str = self.source[self.start:self.current]

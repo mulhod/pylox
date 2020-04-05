@@ -5,6 +5,6 @@ class Return(RuntimeError):
 
     value: Any
 
-    def __init__(self: "Return", value: Any) -> None:
+    def __init__(self, value: Any):
         super()
         self.value = value

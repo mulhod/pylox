@@ -19,10 +19,10 @@ class Interpreter(ExprVisitor, StmtVisitor):
     _environment: Environment = _globals
     _locals: Dict[Expr, int] = {}
 
-    def __init__(self: "Interpreter") -> None:
+    def __init__(self) -> None:
         self._globals.define("clock", Clock)
 
-    def interpret(self: "Interpreter",
+    def interpret(self,
                   exprs_or_stmts: List[Union[Expr, Stmt]]) -> None:
         try:
             for expr_or_stmt in exprs_or_stmts:
@@ -30,7 +30,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
         except PyloxRuntimeError as error:
             pylox.Lox.Lox.run_time_error(error)
 
-    def visit(self: "Interpreter",
+    def visit(self,
               expr_or_stmt: Union[Expr, Stmt]) -> Optional[Any]:
 
         value: Optional[Any]
@@ -186,7 +186,12 @@ class Interpreter(ExprVisitor, StmtVisitor):
         elif isinstance(expr_or_stmt, Class):
 
             self._environment.define(expr_or_stmt.name.lexeme, None)
-            klass: LoxClass = LoxClass(expr_or_stmt.name.lexeme)
+            methods: Dict[str, LoxFunction] = {}
+            method: Function
+            for method in expr_or_stmt.methods:
+                function: LoxFunction = LoxFunction(method, self._environment)
+                methods[method.name.lexeme] = function
+            klass: LoxClass = LoxClass(expr_or_stmt.name.lexeme, methods)
             self._environment.assign(expr_or_stmt.name, klass)
             return None
 
@@ -228,16 +233,16 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
             raise RuntimeError("Invalid expression: {}".format(expr_or_stmt))
 
-    def evaluate(self: "Interpreter", expr: Union[Expr, Stmt]) -> Optional[Any]:
+    def evaluate(self, expr: Union[Expr, Stmt]) -> Optional[Any]:
         return expr.accept(self)
 
-    def resolve(self: "Interpreter", expr: Expr, depth: int) -> None:
+    def resolve(self, expr: Expr, depth: int) -> None:
         self._locals[expr] = depth
 
-    def execute(self: "Interpreter", expr_or_stmt: Union[Expr, Stmt]) -> None:
+    def execute(self, expr_or_stmt: Union[Expr, Stmt]) -> None:
         expr_or_stmt.accept(self)
 
-    def execute_block(self: "Interpreter",
+    def execute_block(self,
                       exprs_or_stmts: List[Union[Expr, Stmt]],
                       environment: Environment) -> None:
         previous: Environment = self._environment
@@ -293,7 +298,7 @@ class Interpreter(ExprVisitor, StmtVisitor):
         raise PyloxRuntimeError("Operands must be numbers.",
                                 token=operator)
 
-    def look_up_variable(self: "Interpreter",
+    def look_up_variable(self,
                          name: Token,
                          expr: Expr) -> Any:
         distance: int = self._locals.get(expr)
@@ -309,10 +314,10 @@ class LoxCallable:
     callee: Any
     arity: int
 
-    def __init__(self: "LoxCallable", callee: Any) -> None:
+    def __init__(self, callee: Any) -> None:
         self.callee = callee
 
-    def call(self: "LoxCallable",
+    def call(self,
              interpreter: Interpreter,
              arguments: List[Any]) -> Any:
         raise NotImplementedError()
@@ -325,7 +330,7 @@ class Clock(LoxCallable):
         self.arity = 0
 
     def call(self,
-             interpreter: "Interpreter",
+             interpreter: Interpreter,
              arguments: List[Any]) -> float:
         return time.time()/1000.0
 
@@ -338,7 +343,7 @@ class LoxFunction(LoxCallable):
     declaration: Function
     closure: Environment
 
-    def __init__(self: "LoxFunction",
+    def __init__(self,
                  declaration: Function,
                  closure: Environment) -> None:
         super().__init__(self)
@@ -346,13 +351,13 @@ class LoxFunction(LoxCallable):
         self.declaration = declaration
         self.arity = len(self.declaration.params)
 
-    def __str__(self: "LoxFunction") -> str:
+    def __str__(self) -> str:
         return "<fn {}>".format(self.declaration.name.lexeme)
 
-    def __repr__(self: "LoxFunction") -> str:
+    def __repr__(self) -> str:
         return str(self)
 
-    def call(self: "LoxFunction",
+    def call(self,
              interpreter: Interpreter,
              arguments: List[Any]) -> None:
 
@@ -373,11 +378,18 @@ class LoxClass(LoxCallable):
 
     name: str
     arity: int
+    methods: Dict[str, LoxFunction]
 
-    def __init__(self: "LoxClass", name: str):
+    def __init__(self,
+                 name: str,
+                 methods: Dict[str, LoxFunction]):
         super().__init__(self)
         self.name = name
+        self.methods = methods
         self.arity = 0
+
+    def find_method(self, name: str) -> Optional[LoxFunction]:
+        return self.methods.get(name)
 
     def __str__(self) -> str:
         return self.name
@@ -400,6 +412,9 @@ class LoxInstance:
     def get(self, name: Token) -> Any:
         if name.lexeme in self.fields:
             return self.fields[name.lexeme]
+        method: LoxFunction = self.klass.find_method(name.lexeme)
+        if method is not None:
+            return method
         raise PyloxRuntimeError("Undefined property '{}'."
                                 .format(name.lexeme),
                                 name)

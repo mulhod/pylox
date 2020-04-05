@@ -10,28 +10,28 @@ class Token:
     literal: Any
     line_number: int
 
-    def __init__(self: "Token",
+    def __init__(self,
                  token_type: TokenType,
                  lexeme: str,
                  literal: Optional[Any],
-                 line_number: int) -> None:
+                 line_number: int):
         self.token_type = token_type
         self.lexeme = lexeme
         self.literal = literal
         self.line_number = line_number
 
-    def __str__(self: "Token") -> str:
+    def __str__(self) -> str:
         return "{} '{}' {}, line {}".format(self.token_type,
                                             self.lexeme,
                                             self.literal,
                                             self.line_number)
 
-    def __repr__(self: "Token") -> str:
+    def __repr__(self) -> str:
         return "{} '{}' {}".format(self.token_type,
                                    self.lexeme,
                                    self.literal)
 
-    def __eq__(self: "Token", other: object) -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Token):
             return False
         other_token: Token = other

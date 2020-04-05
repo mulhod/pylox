@@ -9,18 +9,18 @@ class Environment:
     enclosing: "Environment"
     values: Dict[str, Any] = {}
 
-    def __init__(self: "Environment",
-                 enclosing: Optional["Environment"] = None) -> None:
+    def __init__(self,
+                 enclosing: Optional["Environment"] = None):
         self.enclosing = enclosing
         self.values = {}
 
-    def __str__(self: "Environment") -> str:
+    def __str__(self) -> str:
         return "Environment: {}".format(self.values)
 
-    def __repr__(self: "Environment") -> str:
+    def __repr__(self) -> str:
         return str(self)
 
-    def get(self: "Environment", name: Token) -> Any:
+    def get(self, name: Token) -> Any:
 
         if name.lexeme in self.values:
             return self.values[name.lexeme]
@@ -31,9 +31,7 @@ class Environment:
         raise PyloxRuntimeError("Undefined variable '{}'.".format(name.lexeme),
                                 token=name)
 
-    def assign(self: "Environment",
-               name: Token,
-               value: Any) -> None:
+    def assign(self, name: Token, value: Any) -> None:
 
         if name.lexeme in self.values:
             self.values[name.lexeme] = value
@@ -47,20 +45,20 @@ class Environment:
                                 .format(name.lexeme),
                                 name)
 
-    def define(self: "Environment", name: str, value: Any) -> None:
+    def define(self, name: str, value: Any) -> None:
         self.values[name] = value
 
-    def get_at(self: "Environment", distance: int, name: str) -> Any:
+    def get_at(self, distance: int, name: str) -> Any:
         return self.ancestor(distance).values[name]
 
-    def assign_at(self: "Environment",
+    def assign_at(self,
                   distance: int,
                   name: Token,
                   value: Any) -> None:
         x = self.ancestor(distance).values
         x[name.lexeme] = value
 
-    def ancestor(self: "Environment", distance: int) -> "Environment":
+    def ancestor(self, distance: int) -> "Environment":
         environment: Environment = self
         i: int = 0
         while i < distance:
