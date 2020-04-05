@@ -129,6 +129,17 @@ class Set(Expr):
         return visitor.visit(self)
 
 
+class This(Expr):
+
+    keyword: Token
+
+    def __init__(self, keyword: Token):
+        self.keyword = keyword
+
+    def accept(self, visitor: ExprVisitor) -> Optional[Any]:
+        return visitor.visit(self)
+
+
 class Unary(Expr):
 
     operator: Token

@@ -4,7 +4,7 @@ from typing import Union, List
 import pylox
 from .ExprOrStmt import (Assign, Binary, Block, Call, Class, Expr, Expression,
                          ExprVisitor, Function, Get, Grouping, If, Literal,
-                         Logical, Print, Return, Set, Stmt, StmtVisitor,
+                         Logical, Print, Return, Set, Stmt, StmtVisitor, This,
                          Variable, Var, While)
 from .Interpreter import Interpreter
 from .Token import Token
@@ -59,10 +59,14 @@ class Resolver(ExprVisitor, StmtVisitor):
 
             self.declare(expr_or_stmt.name)
             self.define(expr_or_stmt.name)
+            self.begin_scope()
+            scope: ScopeDict = self._scopes[-1]
+            scope["this"] = True
             method: Function
             for method in expr_or_stmt.methods:
                 declaration: FunctionType = FunctionType.METHOD
                 self.resolve_function(method, declaration)
+            self.end_scope()
 
         elif isinstance(expr_or_stmt, Expression):
 
@@ -157,6 +161,11 @@ class Resolver(ExprVisitor, StmtVisitor):
 
             self.resolve_single(expr_or_stmt.value)
             self.resolve_single(expr_or_stmt.object)
+
+        elif isinstance(expr_or_stmt, This):
+
+            self.resolve_local(expr_or_stmt,
+                               expr_or_stmt.keyword)
 
         return None
 

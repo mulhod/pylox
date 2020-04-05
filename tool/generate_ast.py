@@ -29,6 +29,7 @@ class GenerateAst:
                           ("Set", [("object", "Expr"),
                                    ("name", "Token"),
                                    ("value", "Expr")]),
+                          ("This", [("keyword", "Token")]),
                           ("Unary", [("operator", "Token"),
                                      ("right", "Expr")]),
                           ("Variable", [("name", "Token")])],

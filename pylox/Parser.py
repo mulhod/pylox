@@ -3,7 +3,7 @@ from typing import List, Optional, Union
 import pylox
 from .ExprOrStmt import (Assign, Binary, Block, Call, Class, Expr, Expression,
                          Get, Grouping, Function, If, Literal, Logical, Print,
-                         Return, Set, Stmt, Var, While, Unary, Variable)
+                         Return, Set, Stmt, This, Var, While, Unary, Variable)
 from .Token import Token
 from .TokenType import TokenType
 
@@ -302,6 +302,8 @@ class Parser:
             return Literal(None)
         if self.match(TokenType.NUMBER, TokenType.STRING):
             return Literal(self.previous().literal)
+        if self.match(TokenType.THIS):
+            return This(self.previous())
         if self.match(TokenType.IDENTIFIER):
             return Variable(self.previous())
         if self.match(TokenType.LEFT_PAREN):

@@ -6,7 +6,7 @@ from .Environment import Environment
 from .ExprOrStmt import (Assign, Block, Binary, Call, Class, Expr,
                          ExprVisitor, Expression, Function, If, Literal,
                          Logical, Get, Grouping, Print, Return, Set, Stmt,
-                         StmtVisitor, Unary, Variable, Var, While)
+                         StmtVisitor, This, Unary, Variable, Var, While)
 from .PyloxRuntimeError import PyloxRuntimeError
 from .Return import Return as ReturnException
 from .Token import Token
@@ -223,6 +223,10 @@ class Interpreter(ExprVisitor, StmtVisitor):
             object_.set(expr_or_stmt.name, value)
             return value
 
+        elif isinstance(expr_or_stmt, This):
+
+            return self.look_up_variable(expr_or_stmt.keyword, expr_or_stmt)
+
         elif isinstance(expr_or_stmt, While):
 
             while self.is_truthy(self.evaluate(expr_or_stmt.condition)):
@@ -351,6 +355,11 @@ class LoxFunction(LoxCallable):
         self.declaration = declaration
         self.arity = len(self.declaration.params)
 
+    def bind(self, instance: "LoxInstance") -> "LoxFunction":
+        environment: Environment = Environment(self.closure)
+        environment.define("this", instance)
+        return LoxFunction(self.declaration, environment)
+
     def __str__(self) -> str:
         return "<fn {}>".format(self.declaration.name.lexeme)
 
@@ -414,7 +423,7 @@ class LoxInstance:
             return self.fields[name.lexeme]
         method: LoxFunction = self.klass.find_method(name.lexeme)
         if method is not None:
-            return method
+            return method.bind(self)
         raise PyloxRuntimeError("Undefined property '{}'."
                                 .format(name.lexeme),
                                 name)
