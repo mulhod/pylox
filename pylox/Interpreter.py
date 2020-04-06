@@ -140,7 +140,9 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr_or_stmt, Function):
 
-            function: LoxFunction = LoxFunction(expr_or_stmt, self._environment)
+            function: LoxFunction = LoxFunction(expr_or_stmt,
+                                                self._environment,
+                                                False)
             self._environment.define(expr_or_stmt.name.lexeme, function)
             return None
 
@@ -189,7 +191,10 @@ class Interpreter(ExprVisitor, StmtVisitor):
             methods: Dict[str, LoxFunction] = {}
             method: Function
             for method in expr_or_stmt.methods:
-                function: LoxFunction = LoxFunction(method, self._environment)
+                function: LoxFunction = \
+                    LoxFunction(method,
+                                self._environment,
+                                method.name.lexeme == "init")
                 methods[method.name.lexeme] = function
             klass: LoxClass = LoxClass(expr_or_stmt.name.lexeme, methods)
             self._environment.assign(expr_or_stmt.name, klass)
@@ -347,24 +352,29 @@ class Clock(LoxCallable):
 
 class LoxFunction(LoxCallable):
 
-    declaration: Function
-    closure: Environment
+    _declaration: Function
+    _closure: Environment
+    _is_initializer: bool
 
     def __init__(self,
                  declaration: Function,
-                 closure: Environment) -> None:
+                 closure: Environment,
+                 is_initializer: bool) -> None:
         super().__init__(self)
-        self.closure = closure
-        self.declaration = declaration
-        self._arity = len(self.declaration.params)
+        self._closure = closure
+        self._declaration = declaration
+        self._is_initializer = is_initializer
+        self._arity = len(self._declaration.params)
 
     def bind(self, instance: "LoxInstance") -> "LoxFunction":
-        environment: Environment = Environment(self.closure)
+        environment: Environment = Environment(self._closure)
         environment.define("this", instance)
-        return LoxFunction(self.declaration, environment)
+        return LoxFunction(self._declaration,
+                           environment,
+                           self._is_initializer)
 
     def __str__(self) -> str:
-        return "<fn {}>".format(self.declaration.name.lexeme)
+        return "<fn {}>".format(self._declaration.name.lexeme)
 
     def __repr__(self) -> str:
         return str(self)
@@ -373,16 +383,18 @@ class LoxFunction(LoxCallable):
              interpreter: Interpreter,
              arguments: List[Any]) -> None:
 
-        environment: Environment = Environment(self.closure)
-        for i, param in enumerate(self.declaration.params):
+        environment: Environment = Environment(self._closure)
+        for i, param in enumerate(self._declaration.params):
             environment.define(param.lexeme,
                                arguments[i])
 
         try:
-            interpreter.execute_block(self.declaration.body,
+            interpreter.execute_block(self._declaration.body,
                                       environment)
         except ReturnException as return_value:
             return return_value.value
+        if self._is_initializer:
+            return self._closure.get_at(0, "this")
         return None
 
 
