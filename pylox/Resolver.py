@@ -33,6 +33,7 @@ class ScopeDict(dict):
 class FunctionType(Enum):
     NONE = auto()
     FUNCTION = auto()
+    INITIALIZER = auto()
     METHOD = auto()
 
 
@@ -73,6 +74,8 @@ class Resolver(ExprVisitor, StmtVisitor):
             method: Function
             for method in expr_or_stmt.methods:
                 declaration: FunctionType = FunctionType.METHOD
+                if method.name.lexeme == "init":
+                    declaration = FunctionType.INITIALIZER
                 self.resolve_function(method, declaration)
             self.end_scope()
             self._current_class = enclosing_class
@@ -105,6 +108,10 @@ class Resolver(ExprVisitor, StmtVisitor):
                                           "Cannot return from top-level code.")
 
             if expr_or_stmt.value is not None:
+                if self._current_function == FunctionType.INITIALIZER:
+                    pylox.Lox.Lox.token_error(expr_or_stmt.keyword,
+                                              "Cannot return a value from an "
+                                              "initializer.")
                 self.resolve_single(expr_or_stmt.value)
 
         elif isinstance(expr_or_stmt, Var):

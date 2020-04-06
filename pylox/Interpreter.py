@@ -392,6 +392,8 @@ class LoxFunction(LoxCallable):
             interpreter.execute_block(self._declaration.body,
                                       environment)
         except ReturnException as return_value:
+            if self._is_initializer:
+                return self._closure.get_at(0, "this")
             return return_value.value
         if self._is_initializer:
             return self._closure.get_at(0, "this")
