@@ -316,10 +316,14 @@ class Interpreter(ExprVisitor, StmtVisitor):
 class LoxCallable:
 
     callee: Any
-    arity: int
+    _arity: int = 0
 
     def __init__(self, callee: Any) -> None:
         self.callee = callee
+
+    @property
+    def arity(self):
+        return self._arity
 
     def call(self,
              interpreter: Interpreter,
@@ -331,7 +335,6 @@ class Clock(LoxCallable):
 
     def __init__(self):
         super().__init__(self)
-        self.arity = 0
 
     def call(self,
              interpreter: Interpreter,
@@ -353,7 +356,7 @@ class LoxFunction(LoxCallable):
         super().__init__(self)
         self.closure = closure
         self.declaration = declaration
-        self.arity = len(self.declaration.params)
+        self._arity = len(self.declaration.params)
 
     def bind(self, instance: "LoxInstance") -> "LoxFunction":
         environment: Environment = Environment(self.closure)
@@ -386,7 +389,6 @@ class LoxFunction(LoxCallable):
 class LoxClass(LoxCallable):
 
     name: str
-    arity: int
     methods: Dict[str, LoxFunction]
 
     def __init__(self,
@@ -395,7 +397,13 @@ class LoxClass(LoxCallable):
         super().__init__(self)
         self.name = name
         self.methods = methods
-        self.arity = 0
+
+    @property
+    def arity(self) -> int:
+        initializer: Optional[LoxFunction] = self.find_method("init")
+        if initializer is None:
+            return 0
+        return initializer.arity
 
     def find_method(self, name: str) -> Optional[LoxFunction]:
         return self.methods.get(name)
@@ -407,6 +415,9 @@ class LoxClass(LoxCallable):
              interpreter: Interpreter,
              arguments: List[Any]) -> "LoxInstance":
         instance: LoxInstance = LoxInstance(self)
+        initializer: Optional[LoxFunction] = self.find_method("init")
+        if initializer is not None:
+            initializer.bind(instance).call(interpreter, arguments)
         return instance
 
 
@@ -421,7 +432,7 @@ class LoxInstance:
     def get(self, name: Token) -> Any:
         if name.lexeme in self.fields:
             return self.fields[name.lexeme]
-        method: LoxFunction = self.klass.find_method(name.lexeme)
+        method: Optional[LoxFunction] = self.klass.find_method(name.lexeme)
         if method is not None:
             return method.bind(self)
         raise PyloxRuntimeError("Undefined property '{}'."
