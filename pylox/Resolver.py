@@ -36,11 +36,17 @@ class FunctionType(Enum):
     METHOD = auto()
 
 
+class ClassType(Enum):
+    NONE = auto()
+    CLASS = auto()
+
+
 class Resolver(ExprVisitor, StmtVisitor):
 
     _interpreter: Interpreter
     _scopes: List[ScopeDict]
     _current_function: FunctionType
+    _current_class: ClassType = ClassType.NONE
 
     def __init__(self, interpreter: Interpreter):
         self._interpreter = interpreter
@@ -57,6 +63,8 @@ class Resolver(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr_or_stmt, Class):
 
+            enclosing_class: ClassType = self._current_class
+            self._current_class = ClassType.CLASS
             self.declare(expr_or_stmt.name)
             self.define(expr_or_stmt.name)
             self.begin_scope()
@@ -67,6 +75,7 @@ class Resolver(ExprVisitor, StmtVisitor):
                 declaration: FunctionType = FunctionType.METHOD
                 self.resolve_function(method, declaration)
             self.end_scope()
+            self._current_class = enclosing_class
 
         elif isinstance(expr_or_stmt, Expression):
 
@@ -164,6 +173,11 @@ class Resolver(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr_or_stmt, This):
 
+            if self._current_class == ClassType.NONE:
+                pylox.Lox.Lox.token_error(expr_or_stmt.keyword,
+                                          "Cannot use 'this' outside of a "
+                                          "class.")
+                return None
             self.resolve_local(expr_or_stmt,
                                expr_or_stmt.keyword)
 
