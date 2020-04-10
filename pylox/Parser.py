@@ -116,6 +116,12 @@ class Parser:
     def class_declaration(self) -> Stmt:
         name: Token = self.consume(TokenType.IDENTIFIER,
                                    "Expect class name.")
+
+        super_class: Optional[Variable] = None
+        if self.match(TokenType.LESS):
+            self.consume(TokenType.IDENTIFIER, "Expect superclass name.")
+            super_class = Variable(self.previous())
+
         self.consume(TokenType.LEFT_BRACE,
                      "Expect '{' before class body.")
 
@@ -126,7 +132,7 @@ class Parser:
         self.consume(TokenType.RIGHT_BRACE,
                      "Expect '}' after class body.")
 
-        return Class(name, methods)
+        return Class(name, super_class, methods)
 
     def var_declaration(self) -> Stmt:
         name: Token = self.consume(TokenType.IDENTIFIER,

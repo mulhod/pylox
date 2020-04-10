@@ -68,6 +68,12 @@ class Resolver(ExprVisitor, StmtVisitor):
             self._current_class = ClassType.CLASS
             self.declare(expr_or_stmt.name)
             self.define(expr_or_stmt.name)
+            if (expr_or_stmt.super_class is not None and
+                expr_or_stmt.name.lexeme == expr_or_stmt.super_class.name.lexeme):
+                pylox.Lox.Lox.token_error(expr_or_stmt.super_class.name,
+                                          "A class cannot inherit from itself.")
+            if expr_or_stmt.super_class is not None:
+                self.resolve_single(expr_or_stmt.super_class)
             self.begin_scope()
             scope: ScopeDict = self._scopes[-1]
             scope["this"] = True

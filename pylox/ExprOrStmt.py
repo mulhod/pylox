@@ -204,10 +204,12 @@ class Expression(Stmt):
 class Class(Stmt):
 
     name: Token
+    super_class: Optional[Variable]
     methods: List["Function"]
 
-    def __init__(self, name: Token, methods: List["Function"]):
+    def __init__(self, name: Token, super_class: Optional[Variable], methods: List["Function"]):
         self.name = name
+        self.super_class = super_class
         self.methods = methods
 
     def accept(self, visitor: StmtVisitor) -> Optional[Any]:

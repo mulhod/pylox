@@ -187,6 +187,12 @@ class Interpreter(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr_or_stmt, Class):
 
+            super_class: Any = None
+            if expr_or_stmt.super_class is not None:
+                super_class = self.evaluate(expr_or_stmt.super_class)
+                if not isinstance(super_class, LoxClass):
+                    PyloxRuntimeError("Superclass must be a class.",
+                                      expr_or_stmt.super_class.name)
             self._environment.define(expr_or_stmt.name.lexeme, None)
             methods: Dict[str, LoxFunction] = {}
             method: Function
@@ -196,8 +202,11 @@ class Interpreter(ExprVisitor, StmtVisitor):
                                 self._environment,
                                 method.name.lexeme == "init")
                 methods[method.name.lexeme] = function
-            klass: LoxClass = LoxClass(expr_or_stmt.name.lexeme, methods)
-            self._environment.assign(expr_or_stmt.name, klass)
+            klass: LoxClass = LoxClass(expr_or_stmt.name.lexeme,
+                                       super_class,
+                                       methods)
+            self._environment.assign(expr_or_stmt.name,
+                                     klass)
             return None
 
         elif isinstance(expr_or_stmt, If):
@@ -403,12 +412,15 @@ class LoxFunction(LoxCallable):
 class LoxClass(LoxCallable):
 
     name: str
+    superclass: "LoxClass"
     methods: Dict[str, LoxFunction]
 
     def __init__(self,
                  name: str,
+                 super_class: "LoxClass",
                  methods: Dict[str, LoxFunction]):
         super().__init__(self)
+        self.super_class = super_class
         self.name = name
         self.methods = methods
 
