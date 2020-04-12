@@ -4,8 +4,8 @@ from typing import Union, List
 import pylox
 from .ExprOrStmt import (Assign, Binary, Block, Call, Class, Expr, Expression,
                          ExprVisitor, Function, Get, Grouping, If, Literal,
-                         Logical, Print, Return, Set, Stmt, StmtVisitor, This,
-                         Variable, Var, While)
+                         Logical, Print, Return, Set, Stmt, StmtVisitor,
+                         Super, This, Variable, Var, While)
 from .Interpreter import Interpreter
 from .Token import Token
 
@@ -40,6 +40,7 @@ class FunctionType(Enum):
 class ClassType(Enum):
     NONE = auto()
     CLASS = auto()
+    SUBCLASS = auto()
 
 
 class Resolver(ExprVisitor, StmtVisitor):
@@ -64,6 +65,7 @@ class Resolver(ExprVisitor, StmtVisitor):
 
         elif isinstance(expr_or_stmt, Class):
 
+            scope: ScopeDict
             enclosing_class: ClassType = self._current_class
             self._current_class = ClassType.CLASS
             self.declare(expr_or_stmt.name)
@@ -73,9 +75,14 @@ class Resolver(ExprVisitor, StmtVisitor):
                 pylox.Lox.Lox.token_error(expr_or_stmt.super_class.name,
                                           "A class cannot inherit from itself.")
             if expr_or_stmt.super_class is not None:
+                self.current_class = ClassType.SUBCLASS
                 self.resolve_single(expr_or_stmt.super_class)
+            if expr_or_stmt.super_class is not None:
+                self.begin_scope()
+                scope = self._scopes[-1]
+                scope["super"] = True
             self.begin_scope()
-            scope: ScopeDict = self._scopes[-1]
+            scope = self._scopes[-1]
             scope["this"] = True
             method: Function
             for method in expr_or_stmt.methods:
@@ -84,6 +91,8 @@ class Resolver(ExprVisitor, StmtVisitor):
                     declaration = FunctionType.INITIALIZER
                 self.resolve_function(method, declaration)
             self.end_scope()
+            if expr_or_stmt.super_class is not None:
+                self.end_scope()
             self._current_class = enclosing_class
 
         elif isinstance(expr_or_stmt, Expression):
@@ -183,6 +192,18 @@ class Resolver(ExprVisitor, StmtVisitor):
 
             self.resolve_single(expr_or_stmt.value)
             self.resolve_single(expr_or_stmt.object)
+
+        elif isinstance(expr_or_stmt, Super):
+
+            if self._current_class == ClassType.NONE:
+                pylox.Lox.Lox.token_error(expr_or_stmt.keyword,
+                                          "Cannot use 'super' outside of a "
+                                          "class.")
+            elif self._current_class != ClassType.SUBCLASS:
+                pylox.Lox.Lox.token_error(expr_or_stmt.keyword,
+                                          "Cannot use 'super' in a class with"
+                                          " no superclass.")
+            self.resolve_local(expr_or_stmt, expr_or_stmt.keyword)
 
         elif isinstance(expr_or_stmt, This):
 

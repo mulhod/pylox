@@ -129,6 +129,19 @@ class Set(Expr):
         return visitor.visit(self)
 
 
+class Super(Expr):
+
+    keyword: Token
+    method: Token
+
+    def __init__(self, keyword: Token, method: Token):
+        self.keyword = keyword
+        self.method = method
+
+    def accept(self, visitor: ExprVisitor) -> Optional[Any]:
+        return visitor.visit(self)
+
+
 class This(Expr):
 
     keyword: Token

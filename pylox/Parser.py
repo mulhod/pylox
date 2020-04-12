@@ -3,7 +3,8 @@ from typing import List, Optional, Union
 import pylox
 from .ExprOrStmt import (Assign, Binary, Block, Call, Class, Expr, Expression,
                          Get, Grouping, Function, If, Literal, Logical, Print,
-                         Return, Set, Stmt, This, Var, While, Unary, Variable)
+                         Return, Set, Stmt, Super, This, Var, While, Unary,
+                         Variable)
 from .Token import Token
 from .TokenType import TokenType
 
@@ -308,6 +309,13 @@ class Parser:
             return Literal(None)
         if self.match(TokenType.NUMBER, TokenType.STRING):
             return Literal(self.previous().literal)
+        if self.match(TokenType.SUPER):
+            key_word: Token = self.previous()
+            self.consume(TokenType.DOT,
+                         "Expect '.' after 'super'.")
+            method: Token = self.consume(TokenType.IDENTIFIER,
+                                         "Expect superclass method name.")
+            return Super(key_word, method)
         if self.match(TokenType.THIS):
             return This(self.previous())
         if self.match(TokenType.IDENTIFIER):

@@ -6,7 +6,8 @@ from .Environment import Environment
 from .ExprOrStmt import (Assign, Block, Binary, Call, Class, Expr,
                          ExprVisitor, Expression, Function, If, Literal,
                          Logical, Get, Grouping, Print, Return, Set, Stmt,
-                         StmtVisitor, This, Unary, Variable, Var, While)
+                         StmtVisitor, Super, This, Unary, Variable, Var,
+                         While)
 from .PyloxRuntimeError import PyloxRuntimeError
 from .Return import Return as ReturnException
 from .Token import Token
@@ -194,6 +195,9 @@ class Interpreter(ExprVisitor, StmtVisitor):
                     PyloxRuntimeError("Superclass must be a class.",
                                       expr_or_stmt.super_class.name)
             self._environment.define(expr_or_stmt.name.lexeme, None)
+            if expr_or_stmt.super_class is not None:
+                self._environment = Environment(self._environment)
+                self._environment.define("super", super_class)
             methods: Dict[str, LoxFunction] = {}
             method: Function
             for method in expr_or_stmt.methods:
@@ -205,6 +209,8 @@ class Interpreter(ExprVisitor, StmtVisitor):
             klass: LoxClass = LoxClass(expr_or_stmt.name.lexeme,
                                        super_class,
                                        methods)
+            if super_class is not None:
+                self._environment = self._environment.enclosing
             self._environment.assign(expr_or_stmt.name,
                                      klass)
             return None
@@ -236,6 +242,26 @@ class Interpreter(ExprVisitor, StmtVisitor):
             value: Any = self.evaluate(expr_or_stmt.value)
             object_.set(expr_or_stmt.name, value)
             return value
+
+        elif isinstance(expr_or_stmt, Super):
+
+            distance: int = self._locals[expr_or_stmt]
+            super_class: LoxClass = \
+                self._environment.get_at(distance, "super")
+
+            # "this" is always one level nearer than "super"'s
+            # environment.
+            object_: LoxInstance = self._environment.get_at(distance - 1,
+                                                            "this")
+
+            method: LoxFunction = \
+                super_class.find_method(expr_or_stmt.method.lexeme)
+            if method is None:
+                raise PyloxRuntimeError("Undefined property '{}'."
+                                        .format(expr_or_stmt.method.lexeme),
+                                        expr_or_stmt.method)
+
+            return method.bind(object_)
 
         elif isinstance(expr_or_stmt, This):
 
@@ -432,7 +458,10 @@ class LoxClass(LoxCallable):
         return initializer.arity
 
     def find_method(self, name: str) -> Optional[LoxFunction]:
-        return self.methods.get(name)
+        if name in self.methods:
+            return self.methods[name]
+        if self.super_class is not None:
+            return self.super_class.find_method(name)
 
     def __str__(self) -> str:
         return self.name
