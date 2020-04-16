@@ -220,14 +220,11 @@ class Resolver(ExprVisitor, StmtVisitor):
     def resolve_single(self, expr_or_stmt: Union[Expr, Stmt]) -> None:
         expr_or_stmt.accept(self)
 
-    def resolve_multi(self,
-                      expr_or_stmts: List[Union[Stmt, Expr]]) -> None:
+    def resolve_multi(self, expr_or_stmts: List[Union[Stmt, Expr]]) -> None:
         for expr_or_stmt in expr_or_stmts:
             self.resolve_single(expr_or_stmt)
 
-    def resolve_function(self,
-                         function: Function,
-                         type_: FunctionType) -> None:
+    def resolve_function(self, function: Function, type_: FunctionType) -> None:
 
         enclosing_function: FunctionType = self._current_function
         self._current_function: FunctionType = type_

@@ -222,6 +222,6 @@ class Scanner:
 
     def add_token_with_literal(self,
                                token_type: TokenType,
-                               literal: Optional[Any]):
+                               literal: Optional[Any]) -> None:
         text: str = self.source[self.start:self.current]
         self.tokens.append(Token(token_type, text, literal, self.line_number))

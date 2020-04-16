@@ -8,8 +8,7 @@ from .TokenType import TokenType
 
 class AstPrinter(ExprVisitor, StmtVisitor):
 
-    def to_string(self,
-                  expr_or_stmt: Union[Expr, Stmt]) -> str:
+    def to_string(self, expr_or_stmt: Union[Expr, Stmt]) -> str:
         return expr_or_stmt.accept(self)
 
     def visit(self, expr_or_stmt: Union[Expr, Stmt]):

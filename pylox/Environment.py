@@ -9,15 +9,14 @@ class Environment:
     enclosing: "Environment"
     values: Dict[str, Any] = {}
 
-    def __init__(self,
-                 enclosing: Optional["Environment"] = None):
+    def __init__(self, enclosing: Optional["Environment"] = None):
         self.enclosing = enclosing
         self.values = {}
 
-    def __str__(self) -> str:
+    def __str__(self):
         return "Environment: {}".format(self.values)
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return str(self)
 
     def get(self, name: Token) -> Any:

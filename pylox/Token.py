@@ -20,13 +20,13 @@ class Token:
         self.literal = literal
         self.line_number = line_number
 
-    def __str__(self) -> str:
+    def __str__(self):
         return "{} '{}' {}, line {}".format(self.token_type,
                                             self.lexeme,
                                             self.literal,
                                             self.line_number)
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return "{} '{}' {}".format(self.token_type,
                                    self.lexeme,
                                    self.literal)

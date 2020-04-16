@@ -46,8 +46,7 @@ class Lox:
             sys.exit(70)
 
     @classmethod
-    def run_prompt(cls,
-                   keyboard_interrupt: bool = False) -> None:
+    def run_prompt(cls, keyboard_interrupt: bool = False) -> None:
         while True:
             print("> ", end="")
             try:
@@ -79,16 +78,11 @@ class Lox:
         cls.interpreter.interpret(exprs_or_stmts)
 
     @classmethod
-    def error(cls,
-              line_number: int,
-              message: str) -> None:
+    def error(cls, line_number: int, message: str) -> None:
         cls.report(line_number, "", message)
 
     @classmethod
-    def report(cls,
-               line_number: int,
-               where: str,
-               message: str) -> None:
+    def report(cls, line_number: int, where: str, message: str) -> None:
         print("[line {}] Error {}: {}".format(line_number, where, message))        
         cls.had_error = True
 

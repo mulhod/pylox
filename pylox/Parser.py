@@ -22,7 +22,7 @@ class Parser:
         self.current = 0
         self.tokens = tokens
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return str(self.tokens)
 
     def parse(self) -> List[Union[Expr, Stmt]]:

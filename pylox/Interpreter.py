@@ -21,10 +21,9 @@ class Interpreter(ExprVisitor, StmtVisitor):
     _locals: Dict[Expr, int] = {}
 
     def __init__(self) -> None:
-        self._globals.define("clock", Clock)
+        self._globals.define("clock", Clock())
 
-    def interpret(self,
-                  exprs_or_stmts: List[Union[Expr, Stmt]]) -> None:
+    def interpret(self, exprs_or_stmts: List[Union[Expr, Stmt]]) -> None:
         try:
             for expr_or_stmt in exprs_or_stmts:
                 self.execute(expr_or_stmt)
@@ -376,12 +375,10 @@ class Clock(LoxCallable):
     def __init__(self):
         super().__init__(self)
 
-    def call(self,
-             interpreter: Interpreter,
-             arguments: List[Any]) -> float:
-        return time.time()/1000.0
+    def call(self, interpreter: Interpreter, arguments: List[Any]) -> float:
+        return time.time()
 
-    def __str__(self) -> str:
+    def __str__(self):
         return "<native fn>"
 
 
@@ -394,7 +391,7 @@ class LoxFunction(LoxCallable):
     def __init__(self,
                  declaration: Function,
                  closure: Environment,
-                 is_initializer: bool) -> None:
+                 is_initializer: bool):
         super().__init__(self)
         self._closure = closure
         self._declaration = declaration
@@ -408,15 +405,13 @@ class LoxFunction(LoxCallable):
                            environment,
                            self._is_initializer)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return "<fn {}>".format(self._declaration.name.lexeme)
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return str(self)
 
-    def call(self,
-             interpreter: Interpreter,
-             arguments: List[Any]) -> None:
+    def call(self, interpreter: Interpreter, arguments: List[Any]) -> None:
 
         environment: Environment = Environment(self._closure)
         for i, param in enumerate(self._declaration.params):
@@ -463,7 +458,7 @@ class LoxClass(LoxCallable):
         if self.super_class is not None:
             return self.super_class.find_method(name)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.name
 
     def call(self,
@@ -497,5 +492,5 @@ class LoxInstance:
     def set(self, name: Token, value: Any) -> None:
         self.fields[name.lexeme] = value
 
-    def __str__(self) -> str:
+    def __str__(self):
         return self.klass.name + " instance"
